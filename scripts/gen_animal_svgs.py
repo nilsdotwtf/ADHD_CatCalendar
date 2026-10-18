@@ -3,14 +3,13 @@
 
 Ausgabe: src/data/animalSvgs.ts
 
-Was passiert:
-- Titel/ARIA/Style-Attribut werden entfernt (Farben setzt die App zur Laufzeit).
-- Die Nase bekommt die Variable --nose (schwarz, bei dunklem Fell rosa).
-- Augen und Mund werden durch Platzhalter ersetzt, damit die App je nach
-  Stimmung andere Augen (z.B. geschlossen, müde) und Münder einsetzen kann.
-- IDs bekommen den Platzhalter __ID__, damit mehrere Tiere gleichzeitig
-  angezeigt werden können.
-- Die Katze bekommt Flecken (--patch1/--patch2) für die 3-Farben-Wahl.
+Die SVGs sind automatisch vektorisiert (VTracer) und haben je Tier viele
+Farbvariablen (--fell, --fell-2, …). Dieses Skript
+- entfernt XML-Kopf, Kommentar und Titel,
+- rundet Koordinaten auf eine Nachkommastelle (kleinere App),
+- "friert" die Augen ein (feste Farben), damit beim Umfärben des Fells die
+  Iris nicht mitgefärbt wird,
+- speichert Größe, Original-Farben und Augenpositionen (assets/animals/augen.json).
 
 Aufruf: python3 scripts/gen_animal_svgs.py
 """
@@ -36,71 +35,56 @@ FILES = {
     'raccoon': 'waschbaer',
 }
 
-NOSE = re.compile(r'(<path d="M153 173 Q160 170 167 173 Q165 179 160 180 Q155 179 153 173Z" fill=")var\(--(?:pink|ink)\)')
-EYES = re.compile(r'<path d="M98 151 C98 129[\s\S]*?</g>')
-MOUTH = re.compile(r'<path d="M160 180 L160 186 Q151 196 145 187 M160 186 Q169 196 175 187"[^>]*/>')
-COW_MUZZLE = '<ellipse cx="160" cy="182" rx="30" ry="18" fill="var(--mark)" />'
-COW_NOSTRIL = '<ellipse cx="147" cy="180" rx="4.5" ry="3" fill="var(--pink)" stroke="none"/>'
-
-CAT_HEAD_PATCHES = (
-    '<g clip-path="url(#__ID__-head)" stroke="none">'
-    '<ellipse cx="108" cy="92" rx="52" ry="40" fill="var(--patch1)" transform="rotate(-18 108 92)"/>'
-    '<ellipse cx="222" cy="118" rx="38" ry="30" fill="var(--patch2)"/>'
-    '</g>'
-)
-CAT_BODY = '<path d="M112 197 C93 209 89 245 99 270 C105 283 127 284 141 279 L179 279 C194 284 216 283 221 270 C231 245 227 209 208 197 Z" fill="var(--fur)" />'
-CAT_BODY_PATCHES = (
-    '<clipPath id="__ID__-body"><path d="M112 197 C93 209 89 245 99 270 C105 283 127 284 141 279 L179 279 C194 284 216 283 221 270 C231 245 227 209 208 197 Z"/></clipPath>'
-    '<g clip-path="url(#__ID__-body)" stroke="none">'
-    '<ellipse cx="208" cy="236" rx="30" ry="26" fill="var(--patch1)"/>'
-    '<ellipse cx="108" cy="262" rx="20" ry="16" fill="var(--patch2)"/>'
-    '</g>'
-)
+PATH = re.compile(r'<path d="([^"]+)" fill="var\(--([a-z0-9-]+)\)" transform="translate\(([-\d.]+),([-\d.]+)\)"\s*/>')
+NUM = re.compile(r'-?\d+(?:\.\d+)?')
 
 
-def process(species: str, name: str) -> dict:
+def r1(x: float) -> str:
+    s = f'{x:.1f}'
+    return s[:-2] if s.endswith('.0') else s
+
+
+def process(species: str, name: str, eyes: list) -> dict:
     s = (SRC / f'{name}.svg').read_text(encoding='utf-8')
+    w, h = [float(v) for v in re.search(r'viewBox="0 0 ([\d.]+) ([\d.]+)"', s).groups()]
     style = re.search(r'<svg[^>]*style="([^"]*)"', s).group(1)
-    defaults = dict(kv.strip()[2:].split(':') for kv in style.split(';') if kv.strip())
-    s = re.sub(r'<title[^>]*>.*?</title>', '', s, flags=re.S)
-    s = re.sub(r'<svg[^>]*>', '', s, count=1).replace('</svg>', '')
-    s = s.replace(f'{name}-', '__ID__-')
+    colors = dict(re.findall(r'--([a-z0-9-]+):(#[0-9a-fA-F]{6})', style))
 
-    s, n = NOSE.subn(r'\1var(--nose)', s)
-    if species == 'cow':
-        assert COW_MUZZLE in s
-        s = s.replace(COW_MUZZLE, COW_MUZZLE.replace('var(--mark)', 'var(--nose)'))
-        s = s.replace(COW_NOSTRIL, COW_NOSTRIL.replace('var(--pink)', 'var(--nostril)'))
-
-    m = EYES.search(s)
-    assert m, f'Augen in {name} nicht gefunden'
-    eyes = m.group(0)
-    s = s[: m.start()] + '<!--EYES-->' + s[m.end():]
-
-    mouth = ''
-    mm = MOUTH.search(s)
-    if mm:
-        mouth = mm.group(0)
-        s = s[: mm.start()] + '<!--MOUTH-->' + s[mm.end():]
-
-    if species == 'cat':
-        anchor = '<path d="M139 79 L149 91'
-        assert anchor in s and CAT_BODY in s
-        s = s.replace(anchor, CAT_HEAD_PATCHES + anchor, 1)
-        s = s.replace(CAT_BODY, CAT_BODY + CAT_BODY_PATCHES, 1)
-
-    return {'body': s, 'eyes': eyes, 'mouth': mouth, 'defaults': defaults}
+    parts = []
+    count = 0
+    for m in PATH.finditer(s):
+        d, var, tx, ty = m.group(1), m.group(2), float(m.group(3)), float(m.group(4))
+        nums = [float(v) for v in NUM.findall(d)]
+        xs, ys = nums[0::2], nums[1::2]
+        x0, x1, y0, y1 = tx + min(xs), tx + max(xs), ty + min(ys), ty + max(ys)
+        cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
+        fill = f'var(--{var})'
+        for ex, ey, erx, ery in eyes:
+            small = (x1 - x0) < erx * 2.6 and (y1 - y0) < ery * 2.6
+            inside = ((cx - ex) / (erx * 1.15)) ** 2 + ((cy - ey) / (ery * 1.15)) ** 2 <= 1
+            if small and inside:
+                fill = colors[var]  # Augen behalten ihre Originalfarbe
+        d_short = NUM.sub(lambda n: r1(float(n.group(0))), d)
+        parts.append(f'<path d="{d_short}" fill="{fill}" transform="translate({r1(tx)},{r1(ty)})"/>')
+        count += 1
+    assert count == s.count('<path'), f'{name}: nicht alle Pfade erkannt'
+    return {'w': w, 'h': h, 'colors': colors, 'eyes': eyes, 'body': ''.join(parts)}
 
 
 def main() -> None:
-    data = {sp: process(sp, name) for sp, name in FILES.items()}
+    eyes = json.loads((SRC / 'augen.json').read_text(encoding='utf-8'))
+    data = {sp: process(sp, name, eyes[name]) for sp, name in FILES.items()}
     header = (
         '// Automatisch erzeugt aus assets/animals/*.svg mit scripts/gen_animal_svgs.py – nicht von Hand bearbeiten.\n'
         '/* eslint-disable */\n\n'
-        'export interface AnimalSvg {\n  body: string;\n  eyes: string;\n  mouth: string;\n  defaults: Record<string, string>;\n}\n\n'
+        'export interface AnimalSvg {\n'
+        '  w: number;\n  h: number;\n'
+        '  /** Original-Farben der Variablen (--fell, --fell-2, …) */\n  colors: Record<string, string>;\n'
+        '  /** Augen: [cx, cy, rx, ry] */\n  eyes: number[][];\n'
+        '  body: string;\n}\n\n'
     )
-    OUT.write_text(header + 'export const ANIMAL_SVGS: Record<string, AnimalSvg> = ' + json.dumps(data, ensure_ascii=False, indent=1) + ';\n', encoding='utf-8')
-    print(f'{OUT.relative_to(ROOT)}: {len(data)} Tiere')
+    OUT.write_text(header + 'export const ANIMAL_SVGS: Record<string, AnimalSvg> = ' + json.dumps(data, ensure_ascii=False) + ';\n', encoding='utf-8')
+    print(f'{OUT.relative_to(ROOT)}: {len(data)} Tiere, {OUT.stat().st_size // 1024} KB')
 
 
 if __name__ == '__main__':

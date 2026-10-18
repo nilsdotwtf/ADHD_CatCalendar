@@ -1,16 +1,16 @@
-import React, { useId, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { View } from 'react-native';
-import Svg, { Circle, G, Path, SvgXml } from 'react-native-svg';
+import Svg, { Circle, Ellipse, G, Path, SvgXml } from 'react-native-svg';
 import { SpeciesId } from '../data/animals';
+import { ANIMAL_COLORS } from '../data/animalColors';
 import { ANIMAL_SVGS } from '../data/animalSvgs';
 import { HeadWear, NeckWear, WornClothing } from './Clothing';
-import { isDark, shade } from './color';
+import { rgbDistance, shiftLike, toHsl } from './color';
 
 /*
  * Die Tiere kommen aus den Anime-SVGs in assets/animals/ (aufbereitet mit
- * scripts/gen_animal_svgs.py). Hier werden nur die Farben eingesetzt, Augen & Mund
- * je nach Stimmung getauscht und Schmutz, zerzaustes Fell und Kleidung als
- * Ebenen darübergelegt.
+ * scripts/gen_animal_svgs.py). Hier werden die gewählten Farben eingesetzt und
+ * Stimmung, Schmutz, zerzaustes Fell und Kleidung als Ebenen darübergelegt.
  */
 
 export type { WornClothing } from './Clothing';
@@ -29,90 +29,55 @@ interface Props {
   size?: number;
 }
 
-// Etwas Platz über dem Kopf für Hüte (Vorlage ist 320×320)
-const VIEWBOX = '0 -32 320 352';
-const INK = '#302a30';
+const INK = '#3a2418';
+const KEEP_GROUPS = new Set(['rosa', 'hell', 'akzent']);
 
-/** Nasen sind schwarz – außer das Fell drumherum ist dunkel, dann rosa */
-function noseColor(around: string, pink = '#EE93A6') {
-  return isDark(around) ? pink : '#2B2330';
-}
-
-/** Ordnet die gewählten Farben den Farbvariablen der Vorlage zu */
-function svgColors(species: SpeciesId, c0: string, c1: string, c2: string): Record<string, string> {
-  const v: Record<string, string> = { ...ANIMAL_SVGS[species].defaults };
-  v.fur = c0;
-  switch (species) {
-    case 'cat':
-      v.patch1 = c1;
-      v.patch2 = c2;
-      v.cream = shade(c0, 0.55);
-      break;
-    case 'dog':
-    case 'rabbit':
-    case 'hamster':
-    case 'fox':
-    case 'penguin':
-      v.cream = c1;
-      v.mark = shade(c0, isDark(c0) ? 0.2 : -0.3);
-      break;
-    case 'giraffe':
-    case 'cow':
-      v.mark = c1;
-      v.cream = shade(c0, 0.55);
-      break;
-    case 'budgie':
-      v.cream = c1;
-      v.mark = c2;
-      break;
-    case 'tiger':
-    case 'raccoon':
-      v.mark = c1;
-      break;
+/** Neue Werte für alle Farbvariablen eines Tiers */
+function recolor(species: SpeciesId, chosen: string[]): Record<string, string> {
+  const cfg = ANIMAL_COLORS[species];
+  const src = ANIMAL_SVGS[species].colors;
+  const groups = new Set(cfg.groups ?? ['fell']);
+  const darkBelow = cfg.keepDarkBelow ?? 0.24;
+  const keepGray = cfg.keepDarkGray ?? true;
+  const out: Record<string, string> = {};
+  for (const [name, orig] of Object.entries(src)) {
+    out[name] = orig;
+    const group = name.replace(/-\d+$/, '');
+    if (KEEP_GROUPS.has(group) || !groups.has(group)) continue;
+    const [, s, l] = toHsl(orig);
+    if (l < darkBelow) continue;
+    if (keepGray && l < 0.42 && s < 0.3) continue;
+    let best: [number, string] | null = null;
+    let bestD = Infinity;
+    for (const a of cfg.anchors) {
+      const d = rgbDistance(orig, a[1]);
+      if (d < bestD) {
+        bestD = d;
+        best = a;
+      }
+    }
+    if (!best || best[0] < 0 || bestD > 130) continue;
+    const target = chosen[best[0]] ?? chosen[0];
+    out[name] = shiftLike(target, best[1], orig);
   }
-  const aroundNose = species === 'cat' || species === 'rabbit' || species === 'giraffe' ? c0 : v.cream;
-  v.nose = species === 'cow' ? noseColor(c0, '#F2B8B5') : noseColor(aroundNose);
-  v.nostril = isDark(v.nose) ? '#EEB0B3' : '#B5726F';
-  return v;
+  return out;
 }
 
-// ---------- Augen & Mund je nach Stimmung (Koordinaten der Vorlage) ----------
-
-const mirror = (inner: string) => `${inner}<g transform="translate(320 0) scale(-1 1)">${inner}</g>`;
-
-const CLOSED_EYES = mirror('<path d="M100 153 Q119 127 138 153" fill="none" stroke="var(--ink)" stroke-width="5" stroke-linecap="round"/>');
-const TIRED_EYES = mirror(
-  '<path d="M100 146 Q119 161 138 146" fill="none" stroke="var(--ink)" stroke-width="4.5" stroke-linecap="round"/>' +
-    '<path d="M106 157 Q119 165 132 157" fill="none" stroke="var(--ink)" stroke-width="1.6" opacity=".45"/>',
-);
-const SAD_EXTRA =
-  mirror('<path d="M100 119 L131 111" fill="none" stroke="var(--ink)" stroke-width="3.5" stroke-linecap="round"/>') +
-  '<path d="M214 168 q7 11 0 17 q-7 -6 0 -17Z" fill="#74B9FF" stroke="none"/>';
-const LOVE_BLUSH = mirror('<ellipse cx="101" cy="173" rx="13" ry="6.5" fill="var(--pink)" stroke="none" opacity=".85"/>');
-
-const MOUTHS: Partial<Record<Expression, string>> = {
-  happy: '<path d="M160 180 L160 186 Q149 199 140 186 M160 186 Q171 199 180 186" fill="none" stroke="var(--ink)" stroke-width="2.3" stroke-linecap="round"/>',
-  love: '<path d="M160 180 L160 186 Q149 199 140 186 M160 186 Q171 199 180 186" fill="none" stroke="var(--ink)" stroke-width="2.3" stroke-linecap="round"/>',
-  eating:
-    '<path d="M160 180 L160 184" stroke="var(--ink)" stroke-width="2"/><ellipse cx="160" cy="192" rx="10" ry="9" fill="#7E2F3C" stroke="var(--ink)" stroke-width="2"/>' +
-    '<ellipse cx="160" cy="196" rx="5.5" ry="3.5" fill="#F28B9B" stroke="none"/>',
-  tired: '<path d="M160 180 L160 184" stroke="var(--ink)" stroke-width="2"/><ellipse cx="160" cy="190" rx="4.5" ry="5.5" fill="#7E2F3C" stroke="var(--ink)" stroke-width="1.6"/>',
-  sad: '<path d="M160 180 L160 185 M149 196 Q160 186 171 196" fill="none" stroke="var(--ink)" stroke-width="2.2" stroke-linecap="round"/>',
-};
-
-function buildXml(species: SpeciesId, colors: Record<string, string>, expression: Expression, rid: string): string {
-  const src = ANIMAL_SVGS[species];
-  let eyes = src.eyes;
-  if (expression === 'love' || expression === 'eating') eyes = CLOSED_EYES + (expression === 'love' ? LOVE_BLUSH : '');
-  else if (expression === 'tired') eyes = TIRED_EYES;
-  else if (expression === 'sad') eyes = src.eyes + SAD_EXTRA;
-  const mouth = src.mouth ? (MOUTHS[expression] ?? src.mouth) : '';
-  const body = src.body.replace('<!--EYES-->', eyes).replace('<!--MOUTH-->', mouth).replace(/__ID__/g, `a${rid}`);
-  const filled = body.replace(/var\(--([a-z0-9]+)\)/g, (_, name: string) => colors[name] ?? INK);
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${VIEWBOX}">${filled}</svg>`;
+/** Bildausschnitt im App-Seitenverhältnis 200:220 – mit Platz für Hüte über dem Kopf */
+function viewBoxFor(w: number, h: number) {
+  const aspect = 200 / 220;
+  let vw = w;
+  let vh = w / aspect;
+  if (vh < h * 1.06) {
+    vh = h * 1.06;
+    vw = vh * aspect;
+  }
+  const x = -(vw - w) / 2;
+  const y = -(vh - h) + h * 0.01;
+  return { str: `${x.toFixed(1)} ${y.toFixed(1)} ${vw.toFixed(1)} ${vh.toFixed(1)}`, x, y, vw, vh };
 }
 
-// ---------- Ebenen: zerzaustes Fell, Schmutz ----------
+// ---------- Ebenen ----------
 
 const rad = (d: number) => (d * Math.PI) / 180;
 
@@ -126,99 +91,162 @@ function tufts(cx: number, cy: number, rx: number, ry: number, a0: number, a1: n
     const l = len * (0.7 + j * 0.6);
     const curl = (j - 0.5) * 20;
     const p = (ang: number, extra: number) => [cx + Math.cos(rad(ang)) * (rx + extra), cy + Math.sin(rad(ang)) * (ry + extra)];
-    const [x1, y1] = p(a - w, -4);
-    const [x2, y2] = p(a + w, -4);
+    const [x1, y1] = p(a - w, -6);
+    const [x2, y2] = p(a + w, -6);
     const [tx, ty] = p(a + curl, l);
     d += `M${x1.toFixed(0)} ${y1.toFixed(0)} L${tx.toFixed(0)} ${ty.toFixed(0)} L${x2.toFixed(0)} ${y2.toFixed(0)} Z `;
   }
   return d;
 }
 
-// Kopf/Körper grob als Ellipsen (für Haarbüschel & Schmutz)
-const HEAD = { cx: 160, cy: 140, rx: 84, ry: 68 };
-const BODY = { cx: 160, cy: 245, rx: 60, ry: 38 };
+interface Geo {
+  cx: number;
+  ey: number;
+  dist: number; // Augenabstand – Maßstab für alles andere
+  eyes: number[][];
+}
 
-function MessBehind({ mess, fur }: { mess: number; fur: string }) {
-  if (mess <= 0.12) return null;
+function geometry(species: SpeciesId): Geo {
+  const eyes = ANIMAL_SVGS[species].eyes;
+  const [l, r] = eyes;
+  return { cx: (l[0] + r[0]) / 2, ey: (l[1] + r[1]) / 2, dist: Math.abs(r[0] - l[0]), eyes };
+}
+
+function MessBehind({ g, mess, fur }: { g: Geo; mess: number; fur: string }) {
   const k = Math.min(1, mess);
+  const hx = g.cx;
+  const hy = g.ey - g.dist * 0.1;
+  const hrx = g.dist * 1.0;
+  const hry = g.dist * 0.82;
+  const by = g.ey + g.dist * 1.55;
+  const s = g.dist / 90;
   return (
-    <G fill={fur} stroke={INK} strokeWidth={2.8} strokeLinejoin="round">
-      <Path d={tufts(HEAD.cx, HEAD.cy, HEAD.rx, HEAD.ry, 205, 335, Math.round(4 + k * 5), 10 + k * 12, 7)} />
-      <Path d={tufts(HEAD.cx, HEAD.cy, HEAD.rx, HEAD.ry, -10, 25, 2, 8 + k * 8, 3)} />
-      <Path d={tufts(HEAD.cx, HEAD.cy, HEAD.rx, HEAD.ry, 155, 190, 2, 8 + k * 8, 5)} />
-      <Path d={tufts(BODY.cx, BODY.cy, BODY.rx, BODY.ry, -40, 15, Math.round(2 + k * 2), 8 + k * 9, 2)} />
-      <Path d={tufts(BODY.cx, BODY.cy, BODY.rx, BODY.ry, 165, 220, Math.round(2 + k * 2), 8 + k * 9, 4)} />
+    <G fill={fur} stroke={INK} strokeWidth={3 * s} strokeLinejoin="round">
+      <Path d={tufts(hx, hy, hrx, hry, 205, 335, Math.round(4 + k * 5), (12 + k * 14) * s, 7)} />
+      <Path d={tufts(hx, hy, hrx, hry, -5, 25, 2, (9 + k * 9) * s, 3)} />
+      <Path d={tufts(hx, hy, hrx, hry, 155, 185, 2, (9 + k * 9) * s, 5)} />
+      <Path d={tufts(hx, by, g.dist * 0.95, g.dist * 0.7, -40, 15, Math.round(2 + k * 2), (10 + k * 10) * s, 2)} />
+      <Path d={tufts(hx, by, g.dist * 0.95, g.dist * 0.7, 165, 220, Math.round(2 + k * 2), (10 + k * 10) * s, 4)} />
     </G>
   );
 }
 
-function MessFront({ mess }: { mess: number }) {
-  if (mess <= 0.12) return null;
-  const strands = ['M118 92 q6 -12 14 -6', 'M160 82 q-6 -12 2 -16', 'M200 90 q8 -6 6 -16', 'M92 150 q-10 2 -12 -8', 'M228 152 q10 0 11 -9'];
-  return (
-    <Path
-      d={strands.slice(0, 2 + Math.round(Math.min(1, mess) * 3)).join(' ')}
-      stroke={INK}
-      strokeWidth={2.2}
-      fill="none"
-      strokeLinecap="round"
-      opacity={0.7}
-    />
-  );
+function Overlay({ g, expression, skin, mess, dirt }: { g: Geo; expression: Expression; skin: [string, string]; mess: number; dirt: number }) {
+  const s = g.dist / 90;
+  const lw = 4.5 * s;
+  const parts: React.ReactNode[] = [];
+  const closed = expression === 'love' || expression === 'eating';
+  if (closed || expression === 'tired') {
+    g.eyes.forEach(([x, y, rx, ry], i) => {
+      parts.push(<Ellipse key={`c${i}`} cx={x} cy={y} rx={rx * 1.12} ry={ry * 1.12} fill={skin[i]} />);
+      parts.push(
+        closed ? (
+          <Path key={`a${i}`} d={`M${x - rx} ${y + ry * 0.2} Q${x} ${y - ry * 1.0} ${x + rx} ${y + ry * 0.2}`} stroke={INK} strokeWidth={lw} fill="none" strokeLinecap="round" />
+        ) : (
+          <G key={`a${i}`}>
+            <Path d={`M${x - rx} ${y} Q${x} ${y + ry * 0.55} ${x + rx} ${y}`} stroke={INK} strokeWidth={lw} fill="none" strokeLinecap="round" />
+            <Path d={`M${x - rx * 0.6} ${y + ry * 0.55} Q${x} ${y + ry * 0.75} ${x + rx * 0.6} ${y + ry * 0.55}`} stroke={INK} strokeWidth={lw * 0.35} fill="none" opacity={0.5} />
+          </G>
+        ),
+      );
+    });
+  }
+  if (expression === 'love' || expression === 'happy') {
+    g.eyes.forEach(([x, y, , ry], i) => {
+      const bx = x + (i === 0 ? -1 : 1) * g.dist * 0.08;
+      parts.push(<Ellipse key={`b${i}`} cx={bx} cy={y + ry * 1.25} rx={g.dist * 0.13} ry={g.dist * 0.06} fill="#FF7FA0" opacity={expression === 'love' ? 0.55 : 0.3} />);
+    });
+  }
+  if (expression === 'sad') {
+    const [[lx, ly, lrx, lry], [rx, ry, rrx, rry]] = g.eyes;
+    parts.push(
+      <Path
+        key="brows"
+        d={`M${lx - lrx} ${ly - lry * 1.25} L${lx + lrx * 0.7} ${ly - lry * 1.6} M${rx + rrx} ${ry - rry * 1.25} L${rx - rrx * 0.7} ${ry - rry * 1.6}`}
+        stroke={INK}
+        strokeWidth={lw * 0.8}
+        strokeLinecap="round"
+      />,
+    );
+    parts.push(<Path key="tear" d={`M${rx + rrx * 0.6} ${ry + rry * 0.9} q${8 * s} ${13 * s} 0 ${20 * s} q${-8 * s} ${-7 * s} 0 ${-20 * s} Z`} fill="#74B9FF" />);
+  }
+  if (expression === 'eating') {
+    const my = g.ey + g.dist * 0.6;
+    parts.push(<Ellipse key="m" cx={g.cx} cy={my} rx={g.dist * 0.1} ry={g.dist * 0.09} fill="#7E2F3C" stroke={INK} strokeWidth={lw * 0.5} />);
+    parts.push(<Ellipse key="t" cx={g.cx} cy={my + g.dist * 0.04} rx={g.dist * 0.055} ry={g.dist * 0.03} fill="#F28B9B" />);
+  }
+  if (mess > 0.12) {
+    const hx = g.cx;
+    const top = g.ey - g.dist * 0.85;
+    parts.push(
+      <Path
+        key="strands"
+        d={`M${hx - g.dist * 0.45} ${top + g.dist * 0.12} q${6 * s} ${-12 * s} ${14 * s} ${-6 * s} M${hx} ${top} q${-6 * s} ${-12 * s} ${2 * s} ${-16 * s} M${hx + g.dist * 0.42} ${top + g.dist * 0.1} q${8 * s} ${-6 * s} ${6 * s} ${-16 * s}`}
+        stroke={INK}
+        strokeWidth={2.4 * s}
+        fill="none"
+        strokeLinecap="round"
+        opacity={0.75}
+      />,
+    );
+  }
+  if (dirt > 0.05) {
+    const spots: [number, number, number][] = [
+      [g.cx - g.dist * 0.55, g.ey - g.dist * 0.45, 10],
+      [g.cx + g.dist * 0.6, g.ey + g.dist * 0.15, 9],
+      [g.cx + g.dist * 0.1, g.ey - g.dist * 0.7, 7],
+      [g.cx - g.dist * 0.45, g.ey + g.dist * 1.45, 11],
+      [g.cx + g.dist * 0.5, g.ey + g.dist * 1.6, 10],
+      [g.cx, g.ey + g.dist * 1.9, 7],
+    ];
+    const n = Math.max(1, Math.round(spots.length * Math.min(1, dirt)));
+    parts.push(
+      <G key="dirt" opacity={0.55 + dirt * 0.3}>
+        {spots.slice(0, n).map(([x, y, r], i) => (
+          <G key={i}>
+            <Circle cx={x} cy={y} r={r * s} fill="#7A5A3A" />
+            <Circle cx={x + r * s * 0.8} cy={y + r * s * 0.4} r={r * s * 0.55} fill="#7A5A3A" />
+            <Circle cx={x - r * s * 0.6} cy={y + r * s * 0.7} r={r * s * 0.35} fill="#7A5A3A" />
+          </G>
+        ))}
+      </G>,
+    );
+  }
+  return <>{parts}</>;
 }
-
-function Dirt({ amount }: { amount: number }) {
-  const spots: [number, number, number][] = [
-    [118, 104, 9],
-    [208, 122, 8],
-    [150, 92, 6],
-    [128, 246, 10],
-    [196, 256, 9],
-    [160, 272, 6],
-  ];
-  const n = Math.max(1, Math.round(spots.length * Math.min(1, amount)));
-  return (
-    <G opacity={0.55 + amount * 0.3}>
-      {spots.slice(0, n).map(([x, y, r], i) => (
-        <G key={i}>
-          <Circle cx={x} cy={y} r={r} fill="#7A5A3A" />
-          <Circle cx={x + r * 0.8} cy={y + r * 0.4} r={r * 0.55} fill="#7A5A3A" />
-          <Circle cx={x - r * 0.6} cy={y + r * 0.7} r={r * 0.35} fill="#7A5A3A" />
-        </G>
-      ))}
-    </G>
-  );
-}
-
-// Wo Hut & Halsschmuck sitzen (Vorlagen-Koordinaten)
-const TOP = { x: 160, y: 78, w: 118 };
-const NECK = { x: 160, y: 207, w: 78 };
 
 export function AnimalArt({ species, colors, expression = 'neutral', dirt = 0, mess = 0, head, neck, size = 200 }: Props) {
-  const rid = useId().replace(/[^a-zA-Z0-9]/g, '');
-  const c0 = colors[0] ?? '#ccc';
-  const c1 = colors[1] ?? c0;
-  const c2 = colors[2] ?? c1;
-  const vars = useMemo(() => svgColors(species, c0, c1, c2), [species, c0, c1, c2]);
-  const xml = useMemo(() => buildXml(species, vars, expression, rid), [species, vars, expression, rid]);
+  const src = ANIMAL_SVGS[species];
+  const key = colors.join(',');
+  const vars = useMemo(() => recolor(species, colors), [species, key]); // eslint-disable-line react-hooks/exhaustive-deps
+  const vb = useMemo(() => viewBoxFor(src.w, src.h), [src]);
+  const xml = useMemo(() => {
+    const body = src.body.replace(/var\(--([a-z0-9-]+)\)/g, (_, n: string) => vars[n] ?? INK);
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb.str}">${body}</svg>`;
+  }, [src, vars, vb]);
+  const g = useMemo(() => geometry(species), [species]);
+  const cfg = ANIMAL_COLORS[species];
+  const skin: [string, string] = [colors[cfg.eyeSkin[0]] ?? colors[0], colors[cfg.eyeSkin[1]] ?? colors[0]];
   const w = size;
   const h = size * 1.1;
   const layer = { position: 'absolute' as const, left: 0, top: 0 };
+  const hasOverlay = expression !== 'neutral' || dirt > 0.05 || mess > 0.12 || head || neck;
+  const top = { x: g.cx, y: g.ey - g.dist * 0.92, w: g.dist * 1.3 };
+  const neckAt = { x: g.cx, y: g.ey + g.dist * 0.82, w: g.dist * 0.9 };
 
   return (
     <View style={{ width: w, height: h }}>
       {mess > 0.12 && (
-        <Svg width={w} height={h} viewBox={VIEWBOX} style={layer}>
-          <MessBehind mess={mess} fur={vars.fur} />
+        <Svg width={w} height={h} viewBox={vb.str} style={layer}>
+          <MessBehind g={g} mess={mess} fur={colors[0] ?? '#ccc'} />
         </Svg>
       )}
       <SvgXml xml={xml} width={w} height={h} style={layer} />
-      {(dirt > 0.05 || mess > 0.12 || head || neck) && (
-        <Svg width={w} height={h} viewBox={VIEWBOX} style={layer}>
-          <MessFront mess={mess} />
-          {dirt > 0.05 && <Dirt amount={dirt} />}
-          {neck && <NeckWear item={neck} at={NECK} />}
-          {head && <HeadWear item={head} at={TOP} />}
+      {hasOverlay && (
+        <Svg width={w} height={h} viewBox={vb.str} style={layer}>
+          <Overlay g={g} expression={expression} skin={skin} mess={mess} dirt={dirt} />
+          {neck && <NeckWear item={neck} at={neckAt} />}
+          {head && <HeadWear item={head} at={top} />}
         </Svg>
       )}
     </View>

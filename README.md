@@ -7,11 +7,11 @@ Erledigte Aufgaben bringen Belohnungen, mit denen du dein Tier verwöhnst. Kein 
 
 **Start**
 - 11 Tiere: Katze, Hund, Hase, Hamster, Fuchs, Giraffe, Kuh, Pinguin, Wellensittich, Tiger, Waschbär
-- Logische Anzahl an Farben pro Tier (z. B. Glückskatze & Wellensittich 3, Giraffe 2), jede Farbwahl mit **10 echten Farben** des Tieres
+- Logische Anzahl an Farben pro Tier (z. B. Katze 3: Fell, Flecken, Streifen · Giraffe 2 · Hase 1), jede Farbwahl mit **10 echten Farben** des Tieres
 - Name für das Tier und „Wie möchtest du in der App genannt werden?“
 
 **Startbildschirm**
-- Süße Anime-Tiere (SVG-Vorlagen in `assets/animals/`), frontal sitzend mit großen Glanzaugen; Farben, Gesichtsausdrücke, Schmutz, zerzaustes Fell und Kleidung werden zur Laufzeit eingesetzt
+- Flauschige Anime-Tiere (SVG-Illustrationen in `assets/animals/`); die gewählten Farben werden inklusive aller Schattierungen umgefärbt, Gesichtsausdrücke, Schmutz, zerzaustes Fell und Kleidung kommen als Ebenen darüber
 - Das Tier atmet, reagiert auf Antippen und zeigt seinen Zustand: Hunger 🍗❓, müde 💤, schlechte Laune 🌧️, dreckiges Fell (Flecken, Fliege und zerzaustes, struppiges Fell – beim Bürsten wird es wieder glatt)
 - Vier Bedürfnisse: Hunger, Fellpflege, Energie, Laune
 - Keine Aufgaben → das Tier ist zufrieden. Überfällige Aufgaben → die Bedürfnisse sinken nach und nach.
@@ -69,6 +69,7 @@ Browser-Vorschau (ohne Benachrichtigungen): `npx expo start --web`
 - **Neuer Zeichenstil** – plüschiger Chibi-Look mit Kontur, Fellbüscheln, Schattierung und großen Augen; zerzaustes Fell bei wenig Pflege
 - **Anime-Neuzeichnung** – alle 10 Tiere komplett neu mit Kurvenpfaden nach Referenzbild gezeichnet (Halbprofil, Cel-Shading)
 - **Neue Tier-Grafiken** – die gelieferten Anime-SVGs ersetzen die selbst gezeichneten Tiere; Waschbär als 11. Tier
+- **Finale Tier-Illustrationen** – flauschige, vektorisierte Anime-Tiere; Farbwahl färbt Fell samt Schattierungen um (Zuordnung in `src/data/animalColors.ts`)
 
 ## Entwicklung
 
@@ -83,7 +84,8 @@ App.tsx                 Tabs, Overlays, Lebenszyklus (Bedürfnisse, Benachrichti
 src/data/               Tiere & Farben, Items, Aufgaben-Vorschläge, Ziele
 src/logic/              Bedürfnisse, Zeit-Hilfen, Tagesansicht, Benachrichtigungen, Notizen-Import
 src/store.ts            App-Zustand (zustand + AsyncStorage, wird lokal gespeichert)
-assets/animals/         Tier-SVGs (Quelle) – nach Änderungen `python3 scripts/gen_animal_svgs.py` ausführen
+assets/animals/         Tier-SVGs (Quelle) + augen.json (Augenpositionen) – nach Änderungen `python3 scripts/gen_animal_svgs.py` ausführen
+src/data/animalColors.ts welche Farbtöne zu welcher Farbwahl gehören
 src/data/animalSvgs.ts  daraus erzeugt (nicht von Hand bearbeiten)
 src/components/         Tier-Anzeige (AnimalArt.tsx), Kleidung (Clothing.tsx), UI-Bausteine, Konfetti
 src/screens/            Onboarding, Zuhause, Aufgaben, Ziele, Schrank, Einstellungen

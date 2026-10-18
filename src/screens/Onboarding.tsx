@@ -107,7 +107,7 @@ export function Onboarding() {
                   <Pressable key={s.id} onPress={() => chooseSpecies(s.id)} style={[styles.speciesCard, active && styles.speciesActive]}>
                     <AnimalArt species={s.id} colors={cols} expression={active ? 'happy' : 'neutral'} size={92} />
                     <Text style={styles.speciesName}>{s.name}</Text>
-                    <Text style={styles.speciesInfo}>{s.slots.length} Farben</Text>
+                    <Text style={styles.speciesInfo}>{s.slots.length} {s.slots.length === 1 ? 'Farbe' : 'Farben'}</Text>
                   </Pressable>
                 );
               })}

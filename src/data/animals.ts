@@ -53,11 +53,11 @@ export const SPECIES: Species[] = [
     name: 'Katze',
     article: 'die',
     emoji: '🐱',
-    description: 'Glückskatze mit bis zu 3 Farben',
+    description: 'Flauschige Katze mit 3 Farben',
     slots: [
-      { label: 'Grundfarbe', options: catColors },
-      { label: 'Flecken 1', options: catColors },
-      { label: 'Flecken 2', options: catColors },
+      { label: 'Fell', options: catColors },
+      { label: 'Flecken', options: catColors },
+      { label: 'Streifen', options: catColors },
     ],
     defaultNames: ['Mimi', 'Luna', 'Felix', 'Minka', 'Tiger', 'Pünktchen'],
   },
@@ -106,7 +106,7 @@ export const SPECIES: Species[] = [
     name: 'Hase',
     article: 'der',
     emoji: '🐰',
-    description: 'Flauschiger Hoppler',
+    description: 'Flauschiger Hoppler in einer Farbe',
     slots: [
       {
         label: 'Fell',
@@ -120,21 +120,6 @@ export const SPECIES: Species[] = [
           { name: 'Orange', hex: '#D98E4A' },
           { name: 'Blaugrau', hex: '#7F8796' },
           { name: 'Schoko', hex: '#5C3B2A' },
-          { name: 'Lilac', hex: '#BBAEB4' },
-        ],
-      },
-      {
-        label: 'Bauch & Schnauze',
-        options: [
-          { name: 'Weiß', hex: '#FBF8F3' },
-          { name: 'Schwarz', hex: '#2E2C2C' },
-          { name: 'Braun', hex: '#7B5236' },
-          { name: 'Grau', hex: '#A3A3A3' },
-          { name: 'Creme', hex: '#EEDFC4' },
-          { name: 'Orange', hex: '#D98E4A' },
-          { name: 'Blaugrau', hex: '#7F8796' },
-          { name: 'Schoko', hex: '#5C3B2A' },
-          { name: 'Wildfarben', hex: '#9C7A5B' },
           { name: 'Lilac', hex: '#BBAEB4' },
         ],
       },
@@ -346,7 +331,7 @@ export const SPECIES: Species[] = [
     name: 'Wellensittich',
     article: 'der',
     emoji: '🦜',
-    description: 'Bunter Vogel mit 3 Farben',
+    description: 'Bunter Vogel mit 2 Farben',
     slots: [
       {
         label: 'Körper',
@@ -376,21 +361,6 @@ export const SPECIES: Species[] = [
           { name: 'Elfenbein', hex: '#F4EEDB' },
           { name: 'Lime', hex: '#D4E86A' },
           { name: 'Silberweiß', hex: '#E5E8EB' },
-        ],
-      },
-      {
-        label: 'Flügelwellen',
-        options: [
-          { name: 'Schwarz', hex: '#2B2B2B' },
-          { name: 'Dunkelgrau', hex: '#555A60' },
-          { name: 'Grau', hex: '#8A8F96' },
-          { name: 'Braun (Zimt)', hex: '#8B5E3C' },
-          { name: 'Hellbraun', hex: '#B08560' },
-          { name: 'Opalin-Grün', hex: '#4E9A3A' },
-          { name: 'Opalin-Blau', hex: '#3B7DBF' },
-          { name: 'Graugrün', hex: '#6C7F5A' },
-          { name: 'Violett', hex: '#6D4F9E' },
-          { name: 'Gelb (Lutino)', hex: '#E7C53E' },
         ],
       },
     ],
@@ -485,15 +455,15 @@ export function getSpecies(id: SpeciesId): Species {
 
 // Standardfarben je Tier (Index pro Slot), damit die Vorschau direkt hübsch aussieht.
 export const DEFAULT_COLOR_INDEX: Record<SpeciesId, number[]> = {
-  cat: [0, 2, 1],
+  cat: [2, 6, 5],
   dog: [3, 0],
-  rabbit: [0, 4],
+  rabbit: [0],
   hamster: [0, 0],
   fox: [0, 0],
   giraffe: [2, 1],
-  cow: [0, 0],
-  penguin: [0, 0],
-  budgie: [0, 0, 0],
+  cow: [0, 1],
+  penguin: [6, 0],
+  budgie: [0, 0],
   tiger: [0, 0],
   raccoon: [0, 1],
 };
