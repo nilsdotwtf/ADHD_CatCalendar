@@ -11,7 +11,8 @@ Erledigte Aufgaben bringen Belohnungen, mit denen du dein Tier verwöhnst. Kein 
 - Name für das Tier und „Wie möchtest du in der App genannt werden?“
 
 **Startbildschirm**
-- Das Tier atmet, reagiert auf Antippen und zeigt seinen Zustand: Hunger 🍗❓, müde 💤, schlechte Laune 🌧️, dreckiges Fell (Flecken & Fliege)
+- Plüschiger Chibi-Stil: dunkle Kontur, Fellbüschel, große Kulleraugen, Schattierung
+- Das Tier atmet, reagiert auf Antippen und zeigt seinen Zustand: Hunger 🍗❓, müde 💤, schlechte Laune 🌧️, dreckiges Fell (Flecken, Fliege und zerzaustes, struppiges Fell – beim Bürsten wird es wieder glatt)
 - Vier Bedürfnisse: Hunger, Fellpflege, Energie, Laune
 - Keine Aufgaben → das Tier ist zufrieden. Überfällige Aufgaben → die Bedürfnisse sinken nach und nach.
 - Mehr als 1 Tag ohne Aufgabe → das Tier langweilt sich (mit Benachrichtigung)
@@ -19,12 +20,13 @@ Erledigte Aufgaben bringen Belohnungen, mit denen du dein Tier verwöhnst. Kein 
 **Aufgaben**
 - 15 Vorschläge (Spülmaschine, Wäsche, Staubsaugen, Müll …) oder eigene Aufgabe
 - Wiederholung: einmalig, täglich, wöchentlich, monatlich
-- Wann: **Heute irgendwann** (Standard, mit Abend-Erinnerung um 19 Uhr), **Ohne Datum**, Jetzt, in 1 / 3 Std, heute Abend, morgen, Wochenende
-- Erinnerung: jede halbe Stunde, jede Stunde oder eigene Stunden/Minuten (über 24 Std wird in Tagen angezeigt, z. B. „Alle 1 Tag 2 Std“)
+- Wann: **Heute irgendwann** (Standard, mit Abend-Erinnerung um 19 Uhr), **Ohne Datum**, Jetzt, in 1 / 3 Std, heute Abend, morgen, Wochenende – oder **Tag & Uhrzeit frei wählen** (Stunden und Minuten, auch „irgendwann am Tag“)
+- Erinnerung: einmal zur Uhrzeit, jede halbe Stunde, jede Stunde oder eigene Stunden/Minuten (über 24 Std wird in Tagen angezeigt, z. B. „Alle 1 Tag 2 Std“)
+- **Tagesansicht**: Erledigte Aufgaben verschwinden aus „Heute“, Wiederholungen tauchen erst an ihrem nächsten Tag wieder auf. Über die Tagesleiste springst du zu morgen & den nächsten Tagen und kannst **vorarbeiten**. „✅ Heute geschafft“ zählt mit.
 - **Import aus der Notizen-App**: Liste in Apple Notizen / Google Notizen / Samsung Notes kopieren, in der App einfügen, fertig. Checkboxen (`☐`, `- [ ]`), Aufzählungen und Nummerierungen werden erkannt, bereits abgehakte Einträge sind abgewählt.
 
 **Belohnungen**
-- Jede erledigte Aufgabe: Konfetti, XP und ein Pflege-Item (Futter, Bürste, Kuschelkissen, Streichel-Herz), passend zum Bedürfnis, das gerade am meisten fehlt
+- Jede erledigte Aufgabe: Konfetti, ein **motivierender Spruch**, XP und ein Pflege-Item (Futter, Bürste, Kuschelkissen, Streichel-Herz), passend zum Bedürfnis, das gerade am meisten fehlt
 - Items verbrauchen sich beim Benutzen, jedes Item startet ein kurzes Minispiel (5–10 Sekunden, man kann nicht verlieren):
   - 🍗 **Füttern**: Futter antippen, das Tier schnappt es
   - 🪮 **Bürsten**: Schmutz wegwischen
@@ -34,6 +36,7 @@ Erledigte Aufgaben bringen Belohnungen, mit denen du dein Tier verwöhnst. Kein 
   - **Spielzeug** (Ball, Wollknäuel, Ente, Teddy, Frisbee, Maus) in 10 Farben, mit eigenem Fang-Minispiel
   - **Kleidung**, weiblich (Schleife, Krone, Blumenkranz, Haarreif, Perlenkette) oder männlich (Fliege, Cap, Zylinder, Krawatte, Mütze), in 10 Farben
 - Level mit Geschenken, Tages-Serie 🔥, 15 Ziele mit Belohnungen (z. B. goldene Krone nach 15 Aufgaben)
+- Ab der 7. erledigten Aufgabe am Tag ist das Tier stolz auf dich und fragt, ob du nicht lieber eine **Pause** machen willst – damit du dich nicht übernimmst
 
 **Benachrichtigungen** (immer mit Tier und deinem Namen)
 - Trinken: morgens, mittags, abends (Uhrzeiten einstellbar), „Getrunken!“-Knopf auf dem Startbildschirm
@@ -57,6 +60,14 @@ Dann den QR-Code mit der App **Expo Go** scannen ([iOS](https://apps.apple.com/a
 
 Browser-Vorschau (ohne Benachrichtigungen): `npx expo start --web`
 
+## Änderungsverlauf
+
+- **Tierchen 1.0** – 10 Tiere mit echten Farben, Aufgaben mit Wiederholung & Erinnerungen, Notizen-Import, Pflege-Minispiele, Bonus-Puzzle mit Spielzeug & Kleidung, Level, Ziele, Trink-Erinnerungen
+- **„Heute irgendwann“ & „Ohne Datum“** – Aufgaben ohne feste Uhrzeit mit Abend-Erinnerung
+- **Tagesansicht & Vorarbeiten** – Erledigtes verschwindet, Sprung zu den nächsten Tagen, freie Wahl von Tag & Uhrzeit
+- **Motivation & Pausen** – Spruch nach jeder Aufgabe, Pausen-Vorschlag ab der 7. Aufgabe am Tag
+- **Neuer Zeichenstil** – plüschiger Chibi-Look mit Kontur, Fellbüscheln, Schattierung und großen Augen; zerzaustes Fell bei wenig Pflege
+
 ## Entwicklung
 
 ```bash
@@ -68,9 +79,9 @@ Aufbau:
 ```
 App.tsx                 Tabs, Overlays, Lebenszyklus (Bedürfnisse, Benachrichtigungen)
 src/data/               Tiere & Farben, Items, Aufgaben-Vorschläge, Ziele
-src/logic/              Bedürfnisse, Zeit-Hilfen, Benachrichtigungen, Notizen-Import
+src/logic/              Bedürfnisse, Zeit-Hilfen, Tagesansicht, Benachrichtigungen, Notizen-Import
 src/store.ts            App-Zustand (zustand + AsyncStorage, wird lokal gespeichert)
-src/components/         Tier-Zeichnungen (SVG), UI-Bausteine, Konfetti
+src/components/         Tier-Zeichnungen (SVG, Fell in Fur.tsx), UI-Bausteine, Konfetti
 src/screens/            Onboarding, Zuhause, Aufgaben, Ziele, Schrank, Einstellungen
 src/overlays/           Aufgaben-Editor, Notizen-Import, Belohnungen, Bonus-Auswahl
 src/games/              Minispiele & Bonus-Puzzle
