@@ -13,25 +13,22 @@ interface FurCfg {
   cheekLen?: number;
   /** Farbe der Wangen: Index in colors oder feste Farbe */
   cheekColor?: number | string;
-  /** Brustfell-Zickzack (x, y, Breite) */
-  chest?: [number, number, number];
-  chestColor?: number;
   /** Stirn-Büschel, das immer da ist (z.B. Kuh) */
   crest?: boolean;
   short?: boolean;
 }
 
 const CFG: Record<SpeciesId, FurCfg> = {
-  cat: { head: [100, 88, 48, 48], body: [100, 168, 46, 38], cheeks: [[8, 42], [138, 172]], chest: [100, 130, 30] },
-  tiger: { head: [100, 88, 48, 48], body: [100, 168, 46, 38], cheeks: [[8, 42], [138, 172]], cheekColor: '#FBF7EF', chest: [100, 130, 30] },
-  dog: { head: [100, 88, 46, 46], body: [100, 168, 46, 38], cheeks: [[20, 50], [130, 160]], cheekLen: 7, chest: [100, 132, 28], chestColor: 1 },
-  rabbit: { head: [100, 92, 44, 44], body: [100, 170, 44, 38], cheeks: [[10, 45], [135, 170]], chest: [100, 136, 26] },
-  hamster: { head: [100, 140, 64, 66], cheeks: [[-15, 25], [155, 195]], cheekLen: 10, chest: [100, 150, 34], chestColor: 1 },
-  fox: { head: [100, 86, 44, 44], body: [100, 170, 42, 36], cheeks: [[5, 50], [130, 175]], cheekLen: 13, cheekColor: 1, chest: [100, 136, 22], chestColor: 1 },
+  cat: { head: [100, 88, 48, 48], body: [100, 168, 46, 38], cheeks: [[8, 42], [138, 172]] },
+  tiger: { head: [100, 88, 48, 48], body: [100, 168, 46, 38], cheeks: [[8, 42], [138, 172]], cheekColor: '#FBF7EF' },
+  dog: { head: [100, 88, 46, 46], body: [100, 168, 46, 38], cheeks: [[20, 50], [130, 160]], cheekLen: 7 },
+  rabbit: { head: [100, 92, 44, 44], body: [100, 170, 44, 38], cheeks: [[10, 45], [135, 170]] },
+  hamster: { head: [100, 140, 64, 66], cheeks: [[-15, 25], [155, 195]], cheekLen: 10 },
+  fox: { head: [100, 86, 44, 44], body: [100, 170, 42, 36], cheeks: [[5, 50], [130, 175]], cheekLen: 13, cheekColor: 1 },
   giraffe: { head: [100, 60, 30, 26], body: [100, 178, 44, 26], short: true },
   cow: { head: [100, 84, 44, 40], body: [100, 170, 46, 36], crest: true, short: true },
   penguin: { head: [100, 120, 56, 88], short: true },
-  budgie: { head: [100, 84, 36, 36], body: [100, 150, 42, 50], chest: [100, 128, 26], chestColor: 0 },
+  budgie: { head: [100, 84, 36, 36], body: [100, 150, 42, 50] },
 };
 
 const rad = (d: number) => (d * Math.PI) / 180;
@@ -100,22 +97,6 @@ export function FurFront({ species, colors, mess }: { species: SpeciesId; colors
   const c0 = colors[0];
   const [hx, hy, hrx, hry] = cfg.head;
   const parts: React.ReactNode[] = [];
-  if (cfg.chest) {
-    // weiches Fell-Lätzchen mit Zacken nach unten
-    const [x, y, w] = cfg.chest;
-    const base = pickColor(colors, cfg.chestColor, c0);
-    const teeth = 5;
-    const sw = w / teeth;
-    let d = `M${x - w / 2} ${y + 2} Q${x} ${y - 6} ${x + w / 2} ${y + 2}`;
-    for (let i = teeth - 1; i >= 0; i--) {
-      const tipX = x - w / 2 + sw * (i + 0.5);
-      d += ` L${tipX.toFixed(1)} ${y + (i % 2 ? 9 : 12)} L${(x - w / 2 + sw * i).toFixed(1)} ${y + 4}`;
-    }
-    d += ' Z';
-    parts.push(
-      <Path key="chest" d={d} fill={shade(base, 0.18)} stroke={shade(base, -0.25)} strokeWidth={1.2} strokeOpacity={0.45} strokeLinejoin="round" />,
-    );
-  }
   // Glanzpunkte wie bei Plüsch-Figuren
   if (species !== 'penguin') {
     parts.push(
