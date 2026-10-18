@@ -163,16 +163,23 @@ function BrushGame() {
   const spotsRef = useRef(spots);
   spotsRef.current = spots;
 
+  // Nur Wischen putzt: Schaden = zurückgelegte Strecke über dem Fleck (Antippen allein reicht nicht)
+  const last = useRef<{ x: number; y: number } | null>(null);
   const scrub = (x: number, y: number) => {
     setFinger({ x, y });
+    const prevPos = last.current;
+    last.current = { x, y };
+    if (!prevPos) return;
+    const moved = Math.min(Math.hypot(x - prevPos.x, y - prevPos.y), 40);
+    if (moved < 1) return;
     setHp((prev) => {
       let changed = false;
       const next = prev.map((v, i) => {
         if (v <= 0) return v;
         const s = spotsRef.current[i];
-        if (Math.hypot(s.x - x, s.y - y) < 50) {
+        if (Math.hypot(s.x - x, s.y - y) < 45) {
           changed = true;
-          const nv = v - 14;
+          const nv = v - moved * 0.8;
           if (nv <= 0) haptic();
           return nv;
         }
@@ -182,7 +189,17 @@ function BrushGame() {
     });
   };
 
-  const swipe = useSwipe({ move: scrub, end: () => setFinger(null) });
+  const swipe = useSwipe({
+    start: (x, y) => {
+      last.current = { x, y };
+      setFinger({ x, y });
+    },
+    move: scrub,
+    end: () => {
+      last.current = null;
+      setFinger(null);
+    },
+  });
 
   const cleaned = hp.filter((v) => v <= 0).length;
   const done = cleaned === hp.length;

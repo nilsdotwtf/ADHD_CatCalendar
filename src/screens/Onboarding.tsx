@@ -107,7 +107,6 @@ export function Onboarding() {
                   <Pressable key={s.id} onPress={() => chooseSpecies(s.id)} style={[styles.speciesCard, active && styles.speciesActive]}>
                     <AnimalArt species={s.id} colors={cols} expression={active ? 'happy' : 'neutral'} size={92} />
                     <Text style={styles.speciesName}>{s.name}</Text>
-                    <Text style={styles.speciesInfo}>{s.slots.length} {s.slots.length === 1 ? 'Farbe' : 'Farben'}</Text>
                   </Pressable>
                 );
               })}
@@ -261,7 +260,6 @@ const styles = StyleSheet.create({
   },
   speciesActive: { borderColor: C.primary, backgroundColor: '#FFF1EA' },
   speciesName: { fontSize: 17, fontWeight: '800', color: C.ink, marginTop: 2 },
-  speciesInfo: { fontSize: 13, color: C.sub },
   slotTabs: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 },
   slotTab: {
     flexDirection: 'row',
