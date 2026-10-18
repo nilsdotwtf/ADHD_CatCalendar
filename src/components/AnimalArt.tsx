@@ -3,7 +3,7 @@ import Svg, { Circle, ClipPath, Defs, Ellipse, G, Line, Path, Rect } from 'react
 import { SpeciesId } from '../data/animals';
 import { ClothingType } from '../data/items';
 import { isDark, shade } from './color';
-import { FurBack, FurFront, IRIS } from './Fur';
+import { FurBack, FurBase, FurFront, FurShade, IRIS, Paws } from './Fur';
 
 export type Expression = 'happy' | 'neutral' | 'sad' | 'tired' | 'eating' | 'love';
 
@@ -407,7 +407,12 @@ export function AnimalArt({ species, colors, expression = 'neutral', dirt = 0, m
     }
   }
 
-  const fur = <FurBack species={species} colors={[c0, c1, c2]} mess={mess} />;
+  const fur = (
+    <>
+      <FurBase species={species} colors={[c0, c1, c2]} />
+      <FurBack species={species} colors={[c0, c1, c2]} mess={mess} />
+    </>
+  );
   return (
     <Svg width={size} height={size * 1.1} viewBox="0 0 200 220">
       <Defs>
@@ -423,6 +428,8 @@ export function AnimalArt({ species, colors, expression = 'neutral', dirt = 0, m
       {fur}
       {back}
       {main}
+      <FurShade species={species} colors={[c0, c1, c2]} clip={clip} rid={rid} />
+      <Paws species={species} colors={[c0, c1, c2]} />
       <FurFront species={species} colors={[c0, c1, c2]} mess={mess} />
       {dirt > 0.05 && <Dirt amount={dirt} species={species} />}
       <Face anchor={a.face} expression={expression} iris={IRIS[species]} />
@@ -477,7 +484,6 @@ function Face({ anchor, expression, iris }: { anchor: Anchor['face']; expression
   const sw = 3 * k;
   const eyes = (() => {
     switch (expression) {
-      case 'happy':
       case 'eating':
       case 'love':
         return (
@@ -499,11 +505,18 @@ function Face({ anchor, expression, iris }: { anchor: Anchor['face']; expression
             {[lx, rx].map((ex) => (
               <G key={ex}>
                 {/* große, glänzende Kulleraugen */}
-                <Ellipse cx={ex} cy={y} rx={7.5 * k} ry={9 * k} fill={INK} />
-                <Ellipse cx={ex} cy={y + 2.2 * k} rx={5.6 * k} ry={6.4 * k} fill={iris} />
-                <Ellipse cx={ex} cy={y + 2.6 * k} rx={3 * k} ry={3.8 * k} fill="#141017" />
-                <Circle cx={ex - 2.8 * k} cy={y - 3.6 * k} r={2.9 * k} fill="#fff" />
-                <Circle cx={ex + 2.6 * k} cy={y + 4 * k} r={1.4 * k} fill="#fff" opacity={0.85} />
+                <Ellipse cx={ex} cy={y} rx={9 * k} ry={10.8 * k} fill={INK} />
+                <Ellipse cx={ex} cy={y + 2.6 * k} rx={6.9 * k} ry={7.8 * k} fill={iris} />
+                <Ellipse cx={ex} cy={y + 3.1 * k} rx={3.7 * k} ry={4.6 * k} fill="#141017" />
+                <Circle cx={ex - 3.3 * k} cy={y - 4.3 * k} r={3.4 * k} fill="#fff" />
+                <Circle cx={ex + 3.2 * k} cy={y + 4.8 * k} r={1.7 * k} fill="#fff" opacity={0.85} />
+                <Path
+                  d={`M${ex - 10 * k} ${y - 4.5 * k} Q${ex} ${y - 15 * k} ${ex + 10 * k} ${y - 5 * k}`}
+                  stroke={INK}
+                  strokeWidth={2.8 * k}
+                  fill="none"
+                  strokeLinecap="round"
+                />
               </G>
             ))}
             {expression === 'sad' && (

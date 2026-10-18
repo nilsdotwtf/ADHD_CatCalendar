@@ -1,5 +1,5 @@
 import React from 'react';
-import { Circle, Ellipse, G, Path } from 'react-native-svg';
+import { Circle, Defs, Ellipse, G, Path, RadialGradient, Stop } from 'react-native-svg';
 import { SpeciesId } from '../data/animals';
 import { shade } from './color';
 
@@ -169,3 +169,92 @@ export const IRIS: Record<SpeciesId, string> = {
   penguin: '#2E2A33',
   budgie: '#2E2A33',
 };
+
+// ---------------- Grundbild-Details (immer sichtbar) ----------------
+
+interface Detail {
+  /** kleine Büschel oben auf dem Kopf */
+  topTuft?: boolean;
+  /** Pfoten mit Zehenstrichen: [x, y, Farb-Index oder Farbe] */
+  paws?: [number, number, number | string][];
+  /** Fellstriche in den Ohren (linke Seite, wird gespiegelt) */
+  earLines?: string;
+  earColor?: number | string;
+}
+
+const DETAIL: Record<SpeciesId, Detail> = {
+  cat: { topTuft: true, paws: [[82, 203, 0], [118, 203, 0]], earLines: 'M66 64 L70 50 M72 62 L76 52 M79 60 L81 54', earColor: '#FFFFFF' },
+  tiger: { topTuft: true, paws: [[82, 203, 0], [118, 203, 0]], earLines: 'M58 58 L56 47 M63 59 L63 47 M68 58 L70 48', earColor: '#FFFFFF' },
+  dog: { topTuft: true, paws: [[82, 203, 1], [118, 203, 1]] },
+  rabbit: { topTuft: true, paws: [[80, 204, 0], [120, 204, 0]] },
+  hamster: { topTuft: true, paws: [[78, 204, '#F4A7B9'], [122, 204, '#F4A7B9']] },
+  fox: { topTuft: true, paws: [[84, 203, '#3A2E2A'], [116, 203, '#3A2E2A']], earLines: 'M68 58 L65 42 M74 55 L72 44 M79 52 L78 46', earColor: 1 },
+  giraffe: {},
+  cow: { paws: [[82, 204, '#5A4A40'], [118, 204, '#5A4A40']] },
+  penguin: { paws: [[84, 206, '#F39C38'], [116, 206, '#F39C38']] },
+  budgie: { topTuft: true },
+};
+
+/** Immer sichtbare Büschel – werden mit umrandet und machen die Silhouette plüschig */
+export function FurBase({ species, colors }: { species: SpeciesId; colors: string[] }) {
+  const cfg = CFG[species];
+  const det = DETAIL[species];
+  const c0 = colors[0];
+  return (
+    <G fill={c0}>
+      {det.topTuft && <Path d={tuftPath(cfg.head, 255, 290, 3, 7, 11)} />}
+      {cfg.body && !cfg.short && (
+        <>
+          <Path d={tuftPath(cfg.body, 150, 195, 3, 6, 4)} />
+          <Path d={tuftPath(cfg.body, -15, 30, 3, 6, 8)} />
+        </>
+      )}
+    </G>
+  );
+}
+
+/** Volumen: Licht von oben links, Schatten unten rechts – innerhalb der Silhouette */
+export function FurShade({ species, colors, clip, rid }: { species: SpeciesId; colors: string[]; clip: string; rid: string }) {
+  const cfg = CFG[species];
+  const det = DETAIL[species];
+  const [hx, hy, hrx, hry] = cfg.head;
+  const gid = `shade${rid}`;
+  return (
+    <G>
+      <Defs>
+        <RadialGradient id={gid} cx="38%" cy="28%" r="80%">
+          <Stop offset="0" stopColor="#FFFFFF" stopOpacity={0.28} />
+          <Stop offset="0.45" stopColor="#FFFFFF" stopOpacity={0} />
+          <Stop offset="0.75" stopColor="#2A1830" stopOpacity={0.06} />
+          <Stop offset="1" stopColor="#2A1830" stopOpacity={0.26} />
+        </RadialGradient>
+      </Defs>
+      <G clipPath={clip}>
+        <Ellipse cx={hx} cy={hy} rx={hrx * 1.08} ry={hry * 1.08} fill={`url(#${gid})`} />
+        {cfg.body && <Ellipse cx={cfg.body[0]} cy={cfg.body[1]} rx={cfg.body[2] * 1.08} ry={cfg.body[3] * 1.1} fill={`url(#${gid})`} />}
+        {/* Schatten, den der Kopf auf den Körper wirft */}
+        {cfg.body && <Ellipse cx={hx} cy={hy + hry * 1.02} rx={hrx * 0.72} ry={9} fill="#2A1830" opacity={0.13} />}
+      </G>
+      {det.earLines && (
+        <G stroke={pickColor(colors, det.earColor, '#fff')} strokeWidth={1.8} strokeLinecap="round" opacity={0.7}>
+          <Path d={det.earLines} />
+          <Path d={det.earLines} transform="translate(200 0) scale(-1 1)" />
+        </G>
+      )}
+    </G>
+  );
+}
+
+/** Pfoten mit Zehen – kommen nach Körper & Schattierung */
+export function Paws({ species, colors }: { species: SpeciesId; colors: string[] }) {
+  const det = DETAIL[species];
+  if (!det.paws) return null;
+  return (
+    <G>
+      {det.paws.map(([x, y, c], i) => {
+        const col = shade(pickColor(colors, c, colors[0]), -0.4);
+        return <Path key={i} d={`M${x - 4} ${y - 3} l0 5 M${x + 4} ${y - 3} l0 5`} stroke={col} strokeWidth={1.6} strokeLinecap="round" opacity={0.7} />;
+      })}
+    </G>
+  );
+}
