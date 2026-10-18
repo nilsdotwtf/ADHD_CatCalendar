@@ -55,8 +55,19 @@ npx expo start
 
 Dann den QR-Code mit der App **Expo Go** scannen ([iOS](https://apps.apple.com/app/expo-go/id982107779) / [Android](https://play.google.com/store/apps/details?id=host.exp.exponent)).
 
-> **Hinweis zu Benachrichtigungen:** Lokale Erinnerungen funktionieren in Expo Go. Am zuverlässigsten laufen sie aber
-> in einer eigenen Installation: `npx eas-cli@latest build --profile development` (oder `npx expo run:android` / `run:ios`).
+### Als eigene App auf Android installieren (APK, zum Testen)
+
+Gebaut wird in der Expo-Cloud – kein Android Studio nötig. Einmalig ein kostenloses Konto auf [expo.dev](https://expo.dev) anlegen, dann:
+
+```bash
+npm install
+npx eas-cli@latest login
+npx eas-cli@latest build --platform android --profile preview
+```
+
+Nach ca. 10–20 Minuten zeigt die Konsole einen Link bzw. QR-Code zur fertigen `.apk`. Auf dem Handy öffnen,
+herunterladen und installieren („Installation aus unbekannten Quellen“ für den Browser erlauben).
+Erinnerungen laufen in dieser Version zuverlässiger als in Expo Go.
 
 Browser-Vorschau (ohne Benachrichtigungen): `npx expo start --web`
 
