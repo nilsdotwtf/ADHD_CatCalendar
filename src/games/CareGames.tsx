@@ -151,6 +151,9 @@ const DIRT_SPOTS = [
   [0.3, 0.26], [0.7, 0.28], [0.42, 0.62], [0.63, 0.7], [0.5, 0.86], [0.27, 0.52], [0.74, 0.55],
 ];
 
+// Sauberkeit pro gewischtem Pixel über einem Fleck – ≈ 330 px Wischen je Fleck
+const BRUSH_PER_PX = 0.3;
+
 function BrushGame() {
   const petName = useStore((s) => s.petName);
   const finish = useFinish('brush');
@@ -179,7 +182,7 @@ function BrushGame() {
         const s = spotsRef.current[i];
         if (Math.hypot(s.x - x, s.y - y) < 45) {
           changed = true;
-          const nv = v - moved * 0.8;
+          const nv = v - moved * BRUSH_PER_PX;
           if (nv <= 0) haptic();
           return nv;
         }
@@ -253,7 +256,8 @@ function BrushGame() {
 }
 
 // ---------------- Streicheln: über das Tier streichen ----------------
-const CUDDLE_DISTANCE = 1300;
+// Gestreichelte Strecke in Pixeln, bis das Tier zufrieden ist (≈ 12× über das Tier)
+const CUDDLE_DISTANCE = 3600;
 
 function CuddleGame() {
   const petName = useStore((s) => s.petName);
@@ -268,7 +272,7 @@ function CuddleGame() {
 
   const move = (x: number, y: number) => {
     if (last.current) {
-      const d = Math.hypot(x - last.current.x, y - last.current.y);
+      const d = Math.min(Math.hypot(x - last.current.x, y - last.current.y), 40);
       if (d > 0.5) {
         setDist((v) => Math.min(CUDDLE_DISTANCE, v + d));
         sinceHeart.current += d;

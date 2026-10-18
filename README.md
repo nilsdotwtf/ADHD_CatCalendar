@@ -70,6 +70,7 @@ Browser-Vorschau (ohne Benachrichtigungen): `npx expo start --web`
 - **Anime-Neuzeichnung** – alle 10 Tiere komplett neu mit Kurvenpfaden nach Referenzbild gezeichnet (Halbprofil, Cel-Shading)
 - **Neue Tier-Grafiken** – die gelieferten Anime-SVGs ersetzen die selbst gezeichneten Tiere; Waschbär als 11. Tier
 - **Finale Tier-Illustrationen** – flauschige, vektorisierte Anime-Tiere; Farbwahl färbt Fell samt Schattierungen um (Zuordnung in `src/data/animalColors.ts`)
+- **Bürsten & Streicheln dauern länger** – jeder Fleck braucht etwa 4× drüberwischen (vorher gut 1×), Streicheln etwa 18 Striche statt 7
 - **Bürsten nur durch Wischen** – Matschflecken verschwinden je nach gewischter Strecke, Antippen allein reicht nicht; Tierauswahl ohne Farbanzahl
 - **Kein Starterpaket** – zu Beginn sind keine Pflege-Items da; die Bedürfnisse lassen sich erst nach einer erledigten Aufgabe decken (Hinweis unter „Verwöhnen“)
 - **Umfärben überarbeitet** – Umrandungen bleiben auch bei sehr hellen Farben sichtbar (dünne Linien werden beim Generieren erkannt), Waschbär-Maske/Beine/Schwanzringe färben sich ohne Pünktchen mit, Nase immer schwarz bzw. rosa bei dunklem Fell, Fuchs-Brust nur noch in hellen Tönen
