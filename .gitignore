@@ -38,3 +38,6 @@ yarn-error.*
 
 # generated native folders
 /ios
+
+# fertige Test-APK
+/Tierchen.apk

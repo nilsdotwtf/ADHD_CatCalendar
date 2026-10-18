@@ -55,21 +55,34 @@ npx expo start
 
 Dann den QR-Code mit der App **Expo Go** scannen ([iOS](https://apps.apple.com/app/expo-go/id982107779) / [Android](https://play.google.com/store/apps/details?id=host.exp.exponent)).
 
-### Als eigene App auf Android installieren (APK mit Android Studio)
+### Als eigene App auf Android installieren (APK)
 
-Das native Projekt liegt fertig in `android/` (erzeugt mit `npx expo prebuild --platform android`).
-Voraussetzungen: [Node.js](https://nodejs.org) 20+ und ein aktuelles [Android Studio](https://developer.android.com/studio)
-(bringt SDK und Java mit).
+> Das ist eine **Expo/React-Native-App**, kein Capacitor-Projekt – `npx cap …` gibt es hier nicht.
 
-1. Im Projektordner einmal `npm install` ausführen (die App-Logik wird beim Bauen aus `node_modules` gebündelt).
+Voraussetzungen: [Node.js](https://nodejs.org) 20+ und [Android Studio](https://developer.android.com/studio)
+(einmal öffnen, damit es das Android-SDK installiert – Java bringt es mit).
+
+**Am einfachsten (ein Befehl):**
+
+```bash
+npm ci
+npm run build
+```
+
+`npm run build` findet Java und das SDK von Android Studio selbst und legt die fertige App als **`Tierchen.apk`**
+im Projektordner ab (erster Build ca. 10–20 Minuten). Standardmäßig nur für arm64 (alle aktuellen Handys);
+`npm run build -- --all` baut für alle Prozessoren.
+
+**Oder über die Android-Studio-Oberfläche:**
+
+1. `npm ci` im Projektordner (die App-Logik wird beim Bauen aus `node_modules` gebündelt).
 2. Android Studio → **Open** → den Ordner `android/` wählen und den Gradle-Sync abwarten.
 3. **Build → Select Build Variant…** → bei `app` **release** wählen
    (eine *debug*-APK braucht einen laufenden Entwicklungsserver und startet allein nicht).
 4. **Build → Build App Bundle(s) / APK(s) → Build APK(s)**.
-5. Die fertige Datei liegt unter `android/app/build/outputs/apk/release/app-release.apk` – aufs Handy kopieren und
-   installieren („Installation aus unbekannten Quellen“ erlauben).
+5. Die Datei liegt unter `android/app/build/outputs/apk/release/app-release.apk`.
 
-Ohne Android-Studio-Oberfläche geht das Gleiche im Terminal: `cd android && ./gradlew assembleRelease`.
+APK aufs Handy kopieren und installieren („Installation aus unbekannten Quellen“ erlauben).
 
 > Die Release-APK ist mit dem mitgelieferten Debug-Schlüssel signiert – gut zum Testen, nicht für den Play Store.
 > Wer `app.json` ändert (Name, Icon, Plugins …), erzeugt `android/` danach neu: `npx expo prebuild --platform android --clean`.
