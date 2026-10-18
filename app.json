@@ -29,7 +29,8 @@
         {
           "color": "#FF7A59"
         }
-      ]
+      ],
+      "./plugins/withCmakeVersion"
     ],
     "splash": {
       "image": "./assets/splash-icon.png",

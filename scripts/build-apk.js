@@ -7,6 +7,10 @@
  *
  *   npm run build -- --studio "D:\Pfad\Android Studio"   → Android Studio an eigenem Ort
  *   npm run build -- --sdk "D:\Pfad\Android\Sdk"         → Android-SDK an eigenem Ort
+ *   npm run build -- --cmake 3.31.6                    → andere CMake-Version aus dem SDK
+ *
+ * Unter Windows prüft es außerdem, ob lange Dateipfade erlaubt sind (nötig für den C++-Teil),
+ * und bietet an, sie einzuschalten.
  *
  * Sucht Java 17+ (am liebsten das von Android Studio – auch in der Registry und auf
  * allen Laufwerken) und das Android-SDK selbst; fragt sonst einmal nach und merkt sich
@@ -86,14 +90,16 @@ const subdirs = (dir) => {
  * Macht aus einer Pfadangabe ein JDK-Verzeichnis: akzeptiert den Android-Studio-Ordner, dessen bin-Ordner,
  * studio64.exe, den jbr-Ordner oder direkt ein JDK.
  */
-function toJdk(p) {
+function toJdk(p, { walkUp = false } = {}) {
   if (!p) return null;
   let dir = p.replace(/^"(.*)"$/, '$1').replace(/[\\/]+$/, '');
-  if (/\.exe$/i.test(dir) || (fs.existsSync(dir) && fs.statSync(dir).isFile())) dir = path.dirname(dir);
-  for (let i = 0; i < 4 && dir; i++) {
-    if (fs.existsSync(javaBin(dir))) return dir;
-    for (const sub of ['jbr', 'jre', path.join('jbr', 'Contents', 'Home')]) {
-      if (fs.existsSync(javaBin(path.join(dir, sub)))) return path.join(dir, sub);
+  if (!fs.existsSync(dir)) return null;
+  if (fs.statSync(dir).isFile()) dir = path.dirname(dir);
+  // nur bei ausdrücklich angegebenen Pfaden nach oben suchen (z. B. …\Android Studio\bin\studio64.exe)
+  for (let i = 0; i < (walkUp ? 3 : 1); i++) {
+    for (const sub of ['jbr', path.join('jbr', 'Contents', 'Home'), 'jre', '']) {
+      const d = sub ? path.join(dir, sub) : dir;
+      if (fs.existsSync(javaBin(d))) return d;
     }
     const up = path.dirname(dir);
     if (up === dir) break;
@@ -143,11 +149,12 @@ const pf = process.env.ProgramFiles || 'C:\\Program Files';
 const lad = process.env.LOCALAPPDATA || '';
 
 function javaCandidates() {
+  const explicit = (p) => p && { p, walkUp: true };
   return [
     // 1. ausdrücklich angegeben bzw. gemerkt
-    argValue('--studio'),
-    argValue('--java'),
-    process.env.ANDROID_STUDIO,
+    explicit(argValue('--studio')),
+    explicit(argValue('--java')),
+    explicit(process.env.ANDROID_STUDIO),
     config.java,
     // 2. JAVA_HOME
     process.env.JAVA_HOME,
@@ -177,7 +184,7 @@ async function findJava() {
   const seen = new Set();
   const tooOld = [];
   for (const c of javaCandidates()) {
-    const jdk = toJdk(c);
+    const jdk = c && typeof c === 'object' ? toJdk(c.p, { walkUp: c.walkUp }) : toJdk(c);
     if (!jdk || seen.has(path.resolve(jdk))) continue;
     seen.add(path.resolve(jdk));
     const v = javaVersion(jdk);
@@ -192,7 +199,7 @@ async function findJava() {
         `  (Ordner von Android Studio, z. B. ${win ? 'D:\\Programme\\Android Studio' : '/opt/android-studio'} – oder ein JDK ${MIN_JAVA}+)\n> `,
     );
     if (!answer) break;
-    const jdk = toJdk(answer);
+    const jdk = toJdk(answer, { walkUp: true });
     const v = jdk ? javaVersion(jdk) : 0;
     if (jdk && v >= MIN_JAVA) return jdk;
     console.log(jdk ? `Dort ist nur Java ${v} – es wird ${MIN_JAVA} oder neuer gebraucht.` : `In "${answer}" kein Java gefunden (erwartet: Unterordner "jbr").`);
@@ -236,6 +243,52 @@ async function findSdk() {
   console.log(`Android-SDK: ${sdk}`);
 }
 
+/**
+ * Windows: React-Native-Codegen erzeugt Pfade über 260 Zeichen. Dafür muss Windows lange Pfade
+ * erlauben (einmalige Einstellung, braucht Admin-Rechte) – Ninja aus CMake 3.30 kann sie dann nutzen.
+ */
+const LONG_PATHS_KEY = 'HKLM\\SYSTEM\\CurrentControlSet\\Control\\FileSystem';
+const longPathsOn = () =>
+  /LongPathsEnabled\s+REG_DWORD\s+0x1\b/.test(spawnSync('reg', ['query', LONG_PATHS_KEY, '/v', 'LongPathsEnabled'], { encoding: 'utf8' }).stdout || '');
+
+async function ensureLongPaths() {
+  if (!win || longPathsOn()) return;
+  const manual =
+    '  Manuell: PowerShell als Administrator öffnen und ausführen:\n' +
+    `    reg add ${LONG_PATHS_KEY} /v LongPathsEnabled /t REG_DWORD /d 1 /f\n` +
+    '  Danach "npm run build" erneut starten (notfalls vorher den PC neu starten).';
+  console.log(
+    '\nWindows erlaubt auf diesem PC keine langen Dateipfade (über 260 Zeichen).\n' +
+      'Die braucht der Android-Build aber – ohne scheitert er mit "ninja: error: mkdir … No such file or directory".',
+  );
+  const answer = (await ask('Jetzt einschalten? Windows fragt dann einmal nach Admin-Rechten. [J/n] ')).toLowerCase();
+  if (answer.startsWith('n')) fail(`Ohne lange Pfade klappt der Build nicht.\n${manual}`);
+  spawnSync(
+    'powershell',
+    [
+      '-NoProfile',
+      '-Command',
+      `Start-Process reg -Verb RunAs -Wait -ArgumentList 'add','${LONG_PATHS_KEY}','/v','LongPathsEnabled','/t','REG_DWORD','/d','1','/f'`,
+    ],
+    { stdio: 'inherit' },
+  );
+  if (!longPathsOn()) fail(`Lange Pfade konnten nicht eingeschaltet werden.\n${manual}`);
+  console.log('✔ Lange Pfade sind jetzt erlaubt.');
+}
+
+/** Reste eines C++-Builds mit anderer CMake-Version wegräumen (sonst bleibt der alte Fehler hängen) */
+function cleanStaleCxx() {
+  const gradle = fs.readFileSync(path.join(ANDROID, 'app', 'build.gradle'), 'utf8');
+  const cmake = argValue('--cmake') || (/tierchen\.cmakeVersion'\) \?: '([\d.]+)'/.exec(gradle) || [])[1] || 'default';
+  if (config.cmake === cmake) return cmake;
+  for (const dir of [path.join(ANDROID, 'app', '.cxx'), path.join(ANDROID, 'app', 'build', 'intermediates', 'cxx')]) {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+  config.cmake = cmake;
+  saveConfig();
+  return cmake;
+}
+
 async function main() {
   const javaHome = await findJava();
   if (path.resolve(javaHome) !== path.resolve(config.java || '')) {
@@ -246,9 +299,12 @@ async function main() {
     console.log(`Hinweis: JAVA_HOME (${process.env.JAVA_HOME}) wird nicht benutzt – nehme ${javaHome}`);
   }
   await findSdk();
+  await ensureLongPaths();
+  const cmake = cleanStaleCxx();
 
   const args = ['assembleRelease'];
   if (!process.argv.includes('--all')) args.push('-PreactNativeArchitectures=arm64-v8a');
+  if (argValue('--cmake')) args.push(`-Ptierchen.cmakeVersion=${cmake}`);
 
   const env = { ...process.env, JAVA_HOME: javaHome, PATH: `${path.join(javaHome, 'bin')}${path.delimiter}${process.env.PATH}` };
   console.log(`Java: ${javaHome} (Version ${javaVersion(javaHome)})`);

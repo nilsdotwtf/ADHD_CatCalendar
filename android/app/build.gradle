@@ -180,3 +180,12 @@ dependencies {
         implementation jscFlavor
     }
 }
+
+// @tierchen cmake-version
+android {
+    externalNativeBuild {
+        cmake {
+            version = findProperty('tierchen.cmakeVersion') ?: '3.30.5'
+        }
+    }
+}

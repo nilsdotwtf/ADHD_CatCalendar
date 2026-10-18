@@ -78,6 +78,13 @@ Laufwerken; findet es nichts, fragt es einmal nach dem Ordner und merkt ihn sich
 Direkt angeben geht auch: `npm run build -- --studio "D:\Programme\Android Studio"` (bzw. `--sdk "…"` fürs SDK).
 Ein zu altes `JAVA_HOME` (unter Java 17) wird automatisch übergangen.
 
+**Windows: lange Dateipfade.** Der C++-Teil von React Native erzeugt Pfade über 260 Zeichen. Das Skript prüft,
+ob Windows lange Pfade erlaubt, und bietet an, das einmalig einzuschalten (Admin-Abfrage). Manuell geht es in einer
+Administrator-PowerShell mit
+`reg add HKLM\SYSTEM\CurrentControlSet\Control\FileSystem /v LongPathsEnabled /t REG_DWORD /d 1 /f`.
+Außerdem nutzt die App CMake 3.30.5 aus dem Android-SDK (über `plugins/withCmakeVersion.js`, wird automatisch geladen),
+weil das mitgelieferte CMake 3.22.1 mit langen Pfaden nicht umgehen kann.
+
 **Oder über die Android-Studio-Oberfläche:**
 
 1. `npm ci` im Projektordner (die App-Logik wird beim Bauen aus `node_modules` gebündelt).
