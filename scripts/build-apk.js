@@ -33,22 +33,57 @@ if (!fs.existsSync(path.join(ROOT, 'node_modules', 'react-native'))) {
   fail('node_modules fehlt – bitte zuerst "npm ci" (oder "npm install") ausführen.');
 }
 
-// Java: JAVA_HOME oder das JDK, das Android Studio mitbringt
+// Java: Gradle braucht JDK 17+. Reihenfolge: JAVA_HOME (wenn neu genug), JDK von Android Studio, andere installierte JDKs
+const MIN_JAVA = 17;
 const javaBin = (dir) => path.join(dir, 'bin', win ? 'java.exe' : 'java');
-let javaHome = process.env.JAVA_HOME && fs.existsSync(javaBin(process.env.JAVA_HOME)) ? process.env.JAVA_HOME : null;
-if (!javaHome) {
-  const candidates = win
+function javaVersion(dir) {
+  const r = spawnSync(javaBin(dir), ['-version'], { encoding: 'utf8' });
+  const m = /version "(\d+)(?:\.(\d+))?/.exec(`${r.stderr}${r.stdout}`);
+  if (!m) return 0;
+  return m[1] === '1' ? Number(m[2]) : Number(m[1]); // "1.8" → 8
+}
+const subdirs = (dir) => {
+  try {
+    return fs.readdirSync(dir).map((d) => path.join(dir, d));
+  } catch {
+    return [];
+  }
+};
+const pf = process.env.ProgramFiles || 'C:\\Program Files';
+const lad = process.env.LOCALAPPDATA || '';
+const javaCandidates = [
+  process.env.JAVA_HOME,
+  ...(win
     ? [
-        path.join(process.env.ProgramFiles || 'C:\\Program Files', 'Android', 'Android Studio', 'jbr'),
-        process.env.LOCALAPPDATA && path.join(process.env.LOCALAPPDATA, 'Programs', 'Android Studio', 'jbr'),
+        path.join(pf, 'Android', 'Android Studio', 'jbr'),
+        lad && path.join(lad, 'Programs', 'Android Studio', 'jbr'),
+        ...subdirs(lad && path.join(lad, 'JetBrains', 'Toolbox', 'apps', 'AndroidStudio', 'ch-0')).map((d) => path.join(d, 'jbr')),
+        ...['Microsoft', 'Eclipse Adoptium', 'Java', 'Zulu', 'Amazon Corretto', 'BellSoft'].flatMap((v) => subdirs(path.join(pf, v))),
       ]
     : mac
-      ? ['/Applications/Android Studio.app/Contents/jbr/Contents/Home']
-      : ['/opt/android-studio/jbr', path.join(home, 'android-studio', 'jbr'), '/snap/android-studio/current/jbr'];
-  javaHome = candidates.filter(Boolean).find((d) => fs.existsSync(javaBin(d))) || null;
+      ? ['/Applications/Android Studio.app/Contents/jbr/Contents/Home', ...subdirs('/Library/Java/JavaVirtualMachines').map((d) => path.join(d, 'Contents', 'Home'))]
+      : ['/opt/android-studio/jbr', path.join(home, 'android-studio', 'jbr'), '/snap/android-studio/current/jbr', ...subdirs('/usr/lib/jvm')]),
+].filter((d) => d && fs.existsSync(javaBin(d)));
+
+let javaHome = null;
+const tooOld = [];
+for (const d of javaCandidates) {
+  const v = javaVersion(d);
+  if (v >= MIN_JAVA) {
+    javaHome = d;
+    break;
+  }
+  tooOld.push(`${d} (Java ${v || '?'})`);
 }
-if (!javaHome && spawnSync(win ? 'where' : 'which', ['java']).status !== 0) {
-  fail('Kein Java gefunden. Android Studio installieren (bringt Java mit) oder JAVA_HOME auf ein JDK 17+ setzen.');
+if (!javaHome) {
+  fail(
+    `Kein Java ${MIN_JAVA} oder neuer gefunden.` +
+      (tooOld.length ? `\n  Zu alt: ${tooOld.join(', ')}` : '') +
+      '\n  Lösung: Android Studio installieren (bringt ein passendes Java mit) oder ein JDK 17/21 installieren.',
+  );
+}
+if (process.env.JAVA_HOME && path.resolve(process.env.JAVA_HOME) !== path.resolve(javaHome)) {
+  console.log(`Hinweis: JAVA_HOME (${process.env.JAVA_HOME}) ist zu alt – nehme stattdessen ${javaHome}`);
 }
 
 // Android-SDK: Umgebungsvariable, local.properties oder Standardordner von Android Studio
@@ -72,8 +107,8 @@ if (!hasSdkDir) {
 const args = ['assembleRelease'];
 if (!process.argv.includes('--all')) args.push('-PreactNativeArchitectures=arm64-v8a');
 
-const env = { ...process.env, ...(javaHome ? { JAVA_HOME: javaHome } : {}) };
-if (javaHome) console.log(`Java: ${javaHome}`);
+const env = { ...process.env, JAVA_HOME: javaHome, PATH: `${path.join(javaHome, 'bin')}${path.delimiter}${process.env.PATH}` };
+console.log(`Java: ${javaHome} (Version ${javaVersion(javaHome)})`);
 console.log(`\nBaue APK (${args.join(' ')}) – beim ersten Mal dauert das 10–20 Minuten …\n`);
 
 const res = win
