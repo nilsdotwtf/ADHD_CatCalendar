@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
+    <!-- viewport-fit=cover: in der Android-App (Capacitor) liefern env(safe-area-inset-*) dann die echten Abstände -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#FFF6EC" />
+    <title>Tierchen</title>
+    <style id="expo-reset">
+      html,
+      body {
+        height: 100%;
+        background: #fff6ec;
+      }
+      body {
+        overflow: hidden;
+        overscroll-behavior: none;
+        -webkit-tap-highlight-color: transparent;
+        -webkit-user-select: none;
+        user-select: none;
+      }
+      #root {
+        display: flex;
+        height: 100%;
+        flex: 1;
+      }
+    </style>
+  </head>
+
+  <body>
+    <noscript>Für Tierchen muss JavaScript an sein.</noscript>
+    <div id="root"></div>
+  </body>
+</html>

@@ -1,13 +1,9 @@
-import * as Haptics from 'expo-haptics';
 import React, { useEffect, useRef } from 'react';
 import { Animated, Platform, Pressable, StyleProp, StyleSheet, Text, TextStyle, View, ViewStyle } from 'react-native';
+import { haptic } from '../native/device';
 import { C, R, shadow } from '../theme';
 
-export function haptic(kind: 'light' | 'success' | 'heavy' = 'light') {
-  if (Platform.OS === 'web') return;
-  if (kind === 'success') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-  else Haptics.impactAsync(kind === 'heavy' ? Haptics.ImpactFeedbackStyle.Heavy : Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-}
+export { haptic };
 
 interface BtnProps {
   title: string;

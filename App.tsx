@@ -1,10 +1,11 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useRef } from 'react';
-import { ActivityIndicator, Animated, AppState, BackHandler, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Animated, AppState, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CareGame, ToyGame } from './src/games/CareGames';
 import { Puzzle } from './src/games/Puzzle';
 import { syncNotifications } from './src/logic/notifications';
+import { onBackButton } from './src/native/device';
 import { BonusChoice } from './src/overlays/BonusChoice';
 import { NotesImport } from './src/overlays/NotesImport';
 import { LevelUp, Reward } from './src/overlays/Reward';
@@ -83,22 +84,23 @@ function Main() {
   const overlays = useUI((s) => s.overlays);
   const levelUps = useStore((s) => s.pendingLevelUps);
 
-  useEffect(() => {
-    if (Platform.OS !== 'android') return;
-    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      const ui = useUI.getState();
-      if (ui.overlays.length) {
-        ui.close();
-        return true;
-      }
-      if (ui.tab !== 'home') {
-        ui.setTab('home');
-        return true;
-      }
-      return false;
-    });
-    return () => sub.remove();
-  }, []);
+  // Android-Zurück-Taste: erst Overlays schließen, dann zur Startseite
+  useEffect(
+    () =>
+      onBackButton(() => {
+        const ui = useUI.getState();
+        if (ui.overlays.length) {
+          ui.close();
+          return true;
+        }
+        if (ui.tab !== 'home') {
+          ui.setTab('home');
+          return true;
+        }
+        return false;
+      }),
+    [],
+  );
 
   const top = overlays[overlays.length - 1];
   return (

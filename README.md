@@ -55,60 +55,27 @@ npx expo start
 
 Dann den QR-Code mit der App **Expo Go** scannen ([iOS](https://apps.apple.com/app/expo-go/id982107779) / [Android](https://play.google.com/store/apps/details?id=host.exp.exponent)).
 
-### Als eigene App auf Android installieren (APK)
+### Als Android-App installieren (Capacitor + Android Studio)
 
-> Das ist eine **Expo/React-Native-App**, kein Capacitor-Projekt – `npx cap …` gibt es hier nicht.
+Die App wird als Web-Version gebaut und mit [Capacitor](https://capacitorjs.com) in eine Android-App verpackt –
+kein C++, kein NDK, ganz normal in Android Studio baubar.
 
-Voraussetzungen: [Node.js](https://nodejs.org) 20+ und [Android Studio](https://developer.android.com/studio)
-(einmal öffnen, damit es das Android-SDK installiert – Java bringt es mit).
-
-**Am einfachsten (ein Befehl):**
+Voraussetzungen: [Node.js](https://nodejs.org) 20+ und [Android Studio](https://developer.android.com/studio).
 
 ```bash
-npm ci
-npm run build
+npm ci              # einmalig bzw. nach Paket-Änderungen
+npm run build       # Web-Version bauen und nach android/ kopieren (cap sync)
+npx cap open android   # oder in Android Studio: Open → Ordner "android"
 ```
 
-`npm run build` findet Java und das SDK von Android Studio selbst und legt die fertige App als **`Tierchen.apk`**
-im Projektordner ab (erster Build ca. 10–20 Minuten). Standardmäßig nur für arm64 (alle aktuellen Handys);
-`npm run build -- --all` baut für alle Prozessoren.
+In Android Studio: **Build → Build App Bundle(s) / APK(s) → Build APK(s)**.
+Die fertige `app-debug.apk` liegt unter `android/app/build/outputs/apk/debug/` – aufs Handy kopieren und installieren
+(„Installation aus unbekannten Quellen“ erlauben). Oder das Handy per USB anschließen und auf ▶ **Run** klicken.
 
-Android Studio an einem eigenen Ort installiert? Das Skript sucht auch in der Windows-Registry und auf allen
-Laufwerken; findet es nichts, fragt es einmal nach dem Ordner und merkt ihn sich (`.build-apk.json`).
-Direkt angeben geht auch: `npm run build -- --studio "D:\Programme\Android Studio"` (bzw. `--sdk "…"` fürs SDK).
-Ein zu altes `JAVA_HOME` (unter Java 17) wird automatisch übergangen.
-
-**Windows: lange Dateipfade.** Der C++-Teil von React Native erzeugt Pfade über 260 Zeichen. Das Skript prüft,
-ob Windows lange Pfade erlaubt, und bietet an, das einmalig einzuschalten (Admin-Abfrage). Manuell geht es in einer
-Administrator-PowerShell mit
-`reg add HKLM\SYSTEM\CurrentControlSet\Control\FileSystem /v LongPathsEnabled /t REG_DWORD /d 1 /f`.
-Außerdem nutzt die App CMake 3.30.5 aus dem Android-SDK (über `plugins/withCmakeVersion.js`, wird automatisch geladen),
-weil das mitgelieferte CMake 3.22.1 mit langen Pfaden nicht umgehen kann. Gradle lädt nur die Standardversion
-selbst – `npm run build` installiert CMake 3.30.5 deshalb automatisch ins SDK (per `sdkmanager` oder direkt aus
-Googles SDK-Verzeichnis). Alternativ in Android Studio: *SDK Manager → SDK Tools → Show Package Details → CMake 3.30.5*.
-
-**Oder über die Android-Studio-Oberfläche:**
-
-1. `npm ci` im Projektordner (die App-Logik wird beim Bauen aus `node_modules` gebündelt).
-2. Android Studio → **Open** → den Ordner `android/` wählen und den Gradle-Sync abwarten.
-3. **Build → Select Build Variant…** → bei `app` **release** wählen
-   (eine *debug*-APK braucht einen laufenden Entwicklungsserver und startet allein nicht).
-4. **Build → Build App Bundle(s) / APK(s) → Build APK(s)**.
-5. Die Datei liegt unter `android/app/build/outputs/apk/release/app-release.apk`.
-
-APK aufs Handy kopieren und installieren („Installation aus unbekannten Quellen“ erlauben).
-
-> Die Release-APK ist mit dem mitgelieferten Debug-Schlüssel signiert – gut zum Testen, nicht für den Play Store.
-> Wer `app.json` ändert (Name, Icon, Plugins …), erzeugt `android/` danach neu: `npx expo prebuild --platform android --clean`.
-
-### Alternative: APK in der Expo-Cloud bauen
-
-```bash
-npx eas-cli@latest login
-npx eas-cli@latest build --platform android --profile preview
-```
-
-Browser-Vorschau (ohne Benachrichtigungen): `npx expo start --web`
+- Nach jeder Code-Änderung wieder `npm run build`, dann in Android Studio neu bauen.
+- Erinnerungen, Vibration, Zwischenablage und die Zurück-Taste laufen über Capacitor-Plugins
+  (`src/logic/notifications.web.ts`, `src/native/device.web.ts`).
+- Fehlt ein passendes Java, lädt Gradle es selbst (Foojay-Toolchain-Resolver in `android/settings.gradle`).
 
 ## Änderungsverlauf
 
@@ -120,7 +87,7 @@ Browser-Vorschau (ohne Benachrichtigungen): `npx expo start --web`
 - **Anime-Neuzeichnung** – alle 10 Tiere komplett neu mit Kurvenpfaden nach Referenzbild gezeichnet (Halbprofil, Cel-Shading)
 - **Neue Tier-Grafiken** – die gelieferten Anime-SVGs ersetzen die selbst gezeichneten Tiere; Waschbär als 11. Tier
 - **Finale Tier-Illustrationen** – flauschige, vektorisierte Anime-Tiere; Farbwahl färbt Fell samt Schattierungen um (Zuordnung in `src/data/animalColors.ts`)
-- **Android-Projekt** – `android/` per `expo prebuild` erzeugt, Release-APK direkt mit Android Studio baubar; `eas.json` für Cloud-Builds
+- **Android-App mit Capacitor** – die Web-Version wird in eine Android-App verpackt (`npm run build`, dann in Android Studio bauen); kein C++/NDK mehr. Erinnerungen, Vibration, Zwischenablage und Zurück-Taste über Capacitor-Plugins; App-Icon, Startbild und Benachrichtigungs-Symbol mit der Tierchen-Katze
 - **Jeden Tag etwas tun** – Bedürfnisse sinken täglich von selbst, Pflege-Items verfallen um Mitternacht, Level-ups geben keine Pflege-Items mehr
 - **Bürsten & Streicheln dauern länger** – jeder Fleck braucht etwa 4× drüberwischen (vorher gut 1×), Streicheln etwa 18 Striche statt 7
 - **Bürsten nur durch Wischen** – Matschflecken verschwinden je nach gewischter Strecke, Antippen allein reicht nicht; Tierauswahl ohne Farbanzahl

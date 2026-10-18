@@ -1,9 +1,9 @@
-import * as Clipboard from 'expo-clipboard';
 import React, { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Sheet } from '../components/Sheet';
 import { Button, Chip, haptic, Sub } from '../components/ui';
 import { guessTaskMeta } from '../data/tasks';
+import { readClipboard } from '../native/device';
 import { parseNotes } from '../logic/notesImport';
 import { DUE_OPTIONS, Repeat, REPEAT_LABEL } from '../logic/time';
 import { useStore, useUI } from '../store';
@@ -25,7 +25,7 @@ export function NotesImport() {
 
   const paste = async () => {
     try {
-      const clip = await Clipboard.getStringAsync();
+      const clip = await readClipboard();
       if (!clip.trim()) {
         ui.showToast('Die Zwischenablage ist leer – kopier zuerst deine Liste 📋');
         return;

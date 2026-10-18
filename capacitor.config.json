@@ -1,0 +1,18 @@
+{
+  "appId": "wtf.nils.tierchen",
+  "appName": "Tierchen",
+  "webDir": "dist",
+  "android": {
+    "backgroundColor": "#FFF6EC"
+  },
+  "plugins": {
+    "SystemBars": {
+      "insetsHandling": "css",
+      "style": "LIGHT"
+    },
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_tierchen",
+      "iconColor": "#FF7A59"
+    }
+  }
+}

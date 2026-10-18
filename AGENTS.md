@@ -36,6 +36,8 @@ Docs: https://docs.expo.dev/eas/index.md
 
 ## Rules
 
+- **Android build = Capacitor.** `android/` is a Capacitor project (web build in `dist/`, synced with `npm run build` → `cap sync android`). It is committed and may be edited; do **not** run `expo prebuild` for Android (it would overwrite it). Native-only APIs go through platform files: `*.ts` for the Expo app, `*.web.ts` for the web/Capacitor build (see `src/native/device*.ts`, `src/logic/notifications*.ts`).
+
 - If `ios/` and `android/` directories do not exist, they are generated (Continuous Native Generation). Never create or edit them by hand — configure native behavior in `app.json` and config plugins.
 - Expo Go only includes its bundled native modules. After adding a library with native code, the app needs a development build: `npx expo run:ios|android` locally, or `eas build --profile development`.
 - Prefer recommended Expo modules over third-party libraries, and check your available skills before adding dependencies. Docs: https://docs.expo.dev/versions/latest/index.md
