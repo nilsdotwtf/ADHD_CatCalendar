@@ -11,7 +11,7 @@ Erledigte Aufgaben bringen Belohnungen, mit denen du dein Tier verwöhnst. Kein 
 - Name für das Tier und „Wie möchtest du in der App genannt werden?“
 
 **Startbildschirm**
-- Plüschiger Chibi-Stil: dunkle Kontur, Fellbüschel, große Kulleraugen, Schattierung
+- Anime-/Chibi-Stil nach Vorlage: Halbprofil, großer Kopf mit Wangenfell, sitzender Körper mit Brustfell, große Anime-Augen mit Lidstrich, dunkle Kontur und Cel-Schatten
 - Das Tier atmet, reagiert auf Antippen und zeigt seinen Zustand: Hunger 🍗❓, müde 💤, schlechte Laune 🌧️, dreckiges Fell (Flecken, Fliege und zerzaustes, struppiges Fell – beim Bürsten wird es wieder glatt)
 - Vier Bedürfnisse: Hunger, Fellpflege, Energie, Laune
 - Keine Aufgaben → das Tier ist zufrieden. Überfällige Aufgaben → die Bedürfnisse sinken nach und nach.
@@ -67,6 +67,7 @@ Browser-Vorschau (ohne Benachrichtigungen): `npx expo start --web`
 - **Tagesansicht & Vorarbeiten** – Erledigtes verschwindet, Sprung zu den nächsten Tagen, freie Wahl von Tag & Uhrzeit
 - **Motivation & Pausen** – Spruch nach jeder Aufgabe, Pausen-Vorschlag ab der 7. Aufgabe am Tag
 - **Neuer Zeichenstil** – plüschiger Chibi-Look mit Kontur, Fellbüscheln, Schattierung und großen Augen; zerzaustes Fell bei wenig Pflege
+- **Anime-Neuzeichnung** – alle 10 Tiere komplett neu mit Kurvenpfaden nach Referenzbild gezeichnet (Halbprofil, Cel-Shading)
 
 ## Entwicklung
 
@@ -81,7 +82,7 @@ App.tsx                 Tabs, Overlays, Lebenszyklus (Bedürfnisse, Benachrichti
 src/data/               Tiere & Farben, Items, Aufgaben-Vorschläge, Ziele
 src/logic/              Bedürfnisse, Zeit-Hilfen, Tagesansicht, Benachrichtigungen, Notizen-Import
 src/store.ts            App-Zustand (zustand + AsyncStorage, wird lokal gespeichert)
-src/components/         Tier-Zeichnungen (SVG, Fell in Fur.tsx), UI-Bausteine, Konfetti
+src/components/         Tier-Zeichnungen (AnimalArt.tsx), Kleidung (Clothing.tsx), UI-Bausteine, Konfetti
 src/screens/            Onboarding, Zuhause, Aufgaben, Ziele, Schrank, Einstellungen
 src/overlays/           Aufgaben-Editor, Notizen-Import, Belohnungen, Bonus-Auswahl
 src/games/              Minispiele & Bonus-Puzzle
