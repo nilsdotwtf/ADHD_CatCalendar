@@ -32,6 +32,12 @@ interface Anchor {
 const INK = '#2B2330';
 const PINK = '#F4A7B9';
 const OUTLINE = '#3B2F38';
+const NOSE_PINK = '#F29BB0';
+
+/** Nasen sind schwarz – außer das Fell drumherum ist dunkel, dann rosa */
+function noseColor(around: string, pink = NOSE_PINK): string {
+  return isDark(around) ? pink : '#2B2330';
+}
 
 const ANCHORS: Record<SpeciesId, Anchor> = {
   cat: { face: { x: 100, y: 88, dx: 18, mouthY: 106, k: 1 }, top: { x: 100, y: 44, w: 78 }, neck: { x: 100, y: 132, w: 60 } },
@@ -88,8 +94,8 @@ export function AnimalArt({ species, colors, expression = 'neutral', dirt = 0, m
           <Path d="M135 60 L133 36 L114 51 Z" fill={PINK} opacity={0.8} />
           <Ellipse cx={82} cy={203} rx={13} ry={8} fill={c0} />
           <Ellipse cx={118} cy={203} rx={13} ry={8} fill={c0} />
-          <Path d="M95 99 L105 99 L100 105 Z" fill="#E88A9A" />
-          <Whiskers y={104} />
+          <Path d="M95 99 L105 99 L100 105 Z" fill={noseColor(c0)} />
+          <Whiskers y={104} light={isDark(c0)} />
         </>
       );
       break;
@@ -129,7 +135,7 @@ export function AnimalArt({ species, colors, expression = 'neutral', dirt = 0, m
           <Ellipse cx={100} cy={106} rx={26} ry={16} fill={muzzle} />
           <Ellipse cx={82} cy={203} rx={13} ry={8} fill={c0} />
           <Ellipse cx={118} cy={203} rx={13} ry={8} fill={c0} />
-          <Path d="M94 98 L106 98 L100 105 Z" fill="#C46A6A" />
+          <Path d="M94 98 L106 98 L100 105 Z" fill={noseColor(muzzle)} />
           <Whiskers y={106} />
         </>
       );
@@ -156,7 +162,7 @@ export function AnimalArt({ species, colors, expression = 'neutral', dirt = 0, m
           <Ellipse cx={100} cy={107} rx={24} ry={17} fill={shade(c1, 0.15)} />
           <Ellipse cx={82} cy={203} rx={13} ry={8} fill={c1} />
           <Ellipse cx={118} cy={203} rx={13} ry={8} fill={c1} />
-          <Ellipse cx={100} cy={100} rx={8} ry={6} fill={INK} />
+          <Ellipse cx={100} cy={100} rx={8} ry={6} fill={noseColor(shade(c1, 0.15))} />
         </>
       );
       front = (
@@ -191,10 +197,10 @@ export function AnimalArt({ species, colors, expression = 'neutral', dirt = 0, m
           <Ellipse cx={121} cy={38} rx={6} ry={25} fill={PINK} opacity={0.8} transform="rotate(8 121 34)" />
           <Ellipse cx={80} cy={204} rx={15} ry={8} fill={c0} />
           <Ellipse cx={120} cy={204} rx={15} ry={8} fill={c0} />
-          <Path d="M96 100 L104 100 L100 104 Z" fill="#E88A9A" />
+          <Path d="M96 100 L104 100 L100 104 Z" fill={noseColor(c0)} />
           <Rect x={95.5} y={111} width={4.5} height={7} rx={1} fill="#fff" stroke="#ddd" strokeWidth={0.8} />
           <Rect x={100} y={111} width={4.5} height={7} rx={1} fill="#fff" stroke="#ddd" strokeWidth={0.8} />
-          <Whiskers y={104} />
+          <Whiskers y={104} light={isDark(c0)} />
         </>
       );
       break;
@@ -218,8 +224,8 @@ export function AnimalArt({ species, colors, expression = 'neutral', dirt = 0, m
           <Ellipse cx={118} cy={160} rx={7} ry={5} fill={PINK} />
           <Ellipse cx={78} cy={204} rx={13} ry={6} fill={PINK} />
           <Ellipse cx={122} cy={204} rx={13} ry={6} fill={PINK} />
-          <Ellipse cx={100} cy={120} rx={4.5} ry={3.2} fill="#E88A9A" />
-          <Whiskers y={122} short />
+          <Ellipse cx={100} cy={120} rx={4.5} ry={3.2} fill={noseColor(c1)} />
+          <Whiskers y={122} short light={isDark(c1)} />
         </>
       );
       break;
@@ -261,7 +267,7 @@ export function AnimalArt({ species, colors, expression = 'neutral', dirt = 0, m
           </G>
           <Ellipse cx={84} cy={203} rx={11} ry={8} fill={dark} />
           <Ellipse cx={116} cy={203} rx={11} ry={8} fill={dark} />
-          <Ellipse cx={100} cy={103} rx={6.5} ry={4.5} fill={INK} />
+          <Ellipse cx={100} cy={103} rx={6.5} ry={4.5} fill={noseColor(c1)} />
         </>
       );
       break;
@@ -341,9 +347,9 @@ export function AnimalArt({ species, colors, expression = 'neutral', dirt = 0, m
             <Ellipse cx={134} cy={172} rx={24} ry={18} fill={c1} />
             <Ellipse cx={74} cy={176} rx={16} ry={20} fill={c1} />
           </G>
-          <Ellipse cx={100} cy={110} rx={28} ry={17} fill="#F2B8B5" />
-          <Ellipse cx={90} cy={110} rx={4} ry={3} fill="#B5726F" />
-          <Ellipse cx={110} cy={110} rx={4} ry={3} fill="#B5726F" />
+          <Ellipse cx={100} cy={110} rx={28} ry={17} fill={noseColor(c0, '#F2B8B5')} />
+          <Ellipse cx={90} cy={110} rx={4} ry={3} fill={isDark(c0) ? '#B5726F' : '#6E6268'} />
+          <Ellipse cx={110} cy={110} rx={4} ry={3} fill={isDark(c0) ? '#B5726F' : '#6E6268'} />
           <Ellipse cx={82} cy={204} rx={13} ry={7} fill={shade(c0, -0.35)} />
           <Ellipse cx={118} cy={204} rx={13} ry={7} fill={shade(c0, -0.35)} />
         </>
@@ -407,6 +413,19 @@ export function AnimalArt({ species, colors, expression = 'neutral', dirt = 0, m
     }
   }
 
+  // Farbe rund um Mund & Schnurrhaare: bei dunklem Fell hell zeichnen
+  const faceBg: Partial<Record<SpeciesId, string>> = {
+    cat: c0,
+    rabbit: c0,
+    tiger: '#FBF7EF',
+    dog: shade(c1, 0.15),
+    fox: c1,
+    hamster: c1,
+    cow: noseColor(c0, '#F2B8B5'),
+    giraffe: shade(c0, 0.3),
+  };
+  const bg = faceBg[species];
+  const faceInk = bg && isDark(bg) ? '#F4ECF1' : INK;
   const fur = (
     <>
       <FurBase species={species} colors={[c0, c1, c2]} />
@@ -432,7 +451,7 @@ export function AnimalArt({ species, colors, expression = 'neutral', dirt = 0, m
       <Paws species={species} colors={[c0, c1, c2]} />
       <FurFront species={species} colors={[c0, c1, c2]} mess={mess} />
       {dirt > 0.05 && <Dirt amount={dirt} species={species} />}
-      <Face anchor={a.face} expression={expression} iris={IRIS[species]} />
+      <Face anchor={a.face} expression={expression} iris={IRIS[species]} ink={faceInk} />
       {front && (
         <>
           <G stroke={OUTLINE} strokeWidth={5} strokeLinejoin="round">
@@ -447,10 +466,10 @@ export function AnimalArt({ species, colors, expression = 'neutral', dirt = 0, m
   );
 }
 
-function Whiskers({ y, short }: { y: number; short?: boolean }) {
+function Whiskers({ y, short, light }: { y: number; short?: boolean; light?: boolean }) {
   const l = short ? 16 : 26;
   return (
-    <G stroke={INK} strokeOpacity={0.35} strokeWidth={1.4} strokeLinecap="round">
+    <G stroke={light ? '#F4ECF1' : INK} strokeOpacity={light ? 0.6 : 0.35} strokeWidth={1.4} strokeLinecap="round">
       <Line x1={78} y1={y} x2={78 - l} y2={y - 4} />
       <Line x1={78} y1={y + 4} x2={78 - l} y2={y + 6} />
       <Line x1={122} y1={y} x2={122 + l} y2={y - 4} />
@@ -477,7 +496,7 @@ function Dirt({ amount, species }: { amount: number; species: SpeciesId }) {
   );
 }
 
-function Face({ anchor, expression, iris }: { anchor: Anchor['face']; expression: Expression; iris: string }) {
+function Face({ anchor, expression, iris, ink = INK }: { anchor: Anchor['face']; expression: Expression; iris: string; ink?: string }) {
   const { x, y, dx, mouthY, k, beak } = anchor;
   const lx = x - dx;
   const rx = x + dx;
@@ -487,14 +506,14 @@ function Face({ anchor, expression, iris }: { anchor: Anchor['face']; expression
       case 'eating':
       case 'love':
         return (
-          <G stroke={INK} strokeWidth={sw} strokeLinecap="round" fill="none">
+          <G stroke={ink} strokeWidth={sw} strokeLinecap="round" fill="none">
             <Path d={`M${lx - 6 * k} ${y + 2 * k} Q${lx} ${y - 7 * k} ${lx + 6 * k} ${y + 2 * k}`} />
             <Path d={`M${rx - 6 * k} ${y + 2 * k} Q${rx} ${y - 7 * k} ${rx + 6 * k} ${y + 2 * k}`} />
           </G>
         );
       case 'tired':
         return (
-          <G stroke={INK} strokeWidth={sw} strokeLinecap="round" fill="none">
+          <G stroke={ink} strokeWidth={sw} strokeLinecap="round" fill="none">
             <Path d={`M${lx - 6 * k} ${y} Q${lx} ${y + 4 * k} ${lx + 6 * k} ${y}`} />
             <Path d={`M${rx - 6 * k} ${y} Q${rx} ${y + 4 * k} ${rx + 6 * k} ${y}`} />
           </G>
@@ -512,7 +531,7 @@ function Face({ anchor, expression, iris }: { anchor: Anchor['face']; expression
                 <Circle cx={ex + 3.2 * k} cy={y + 4.8 * k} r={1.7 * k} fill="#fff" opacity={0.85} />
                 <Path
                   d={`M${ex - 10 * k} ${y - 4.5 * k} Q${ex} ${y - 15 * k} ${ex + 10 * k} ${y - 5 * k}`}
-                  stroke={INK}
+                  stroke={ink}
                   strokeWidth={2.8 * k}
                   fill="none"
                   strokeLinecap="round"
@@ -523,7 +542,7 @@ function Face({ anchor, expression, iris }: { anchor: Anchor['face']; expression
               <G>
                 <Path
                   d={`M${lx - 7 * k} ${y - 10 * k} L${lx + 5 * k} ${y - 13 * k} M${rx + 7 * k} ${y - 10 * k} L${rx - 5 * k} ${y - 13 * k}`}
-                  stroke={INK}
+                  stroke={ink}
                   strokeWidth={2.2 * k}
                   strokeLinecap="round"
                 />
@@ -548,12 +567,12 @@ function Face({ anchor, expression, iris }: { anchor: Anchor['face']; expression
     } else if (expression === 'tired') {
       mouth = <Ellipse cx={x} cy={m + 3 * k} rx={3.5 * k} ry={4 * k} fill="#8E3B46" />;
     } else if (expression === 'sad') {
-      mouth = <Path d={`M${x - 7 * k} ${m + 6 * k} Q${x} ${m - 1 * k} ${x + 7 * k} ${m + 6 * k}`} stroke={INK} strokeWidth={sw * 0.8} fill="none" strokeLinecap="round" />;
+      mouth = <Path d={`M${x - 7 * k} ${m + 6 * k} Q${x} ${m - 1 * k} ${x + 7 * k} ${m + 6 * k}`} stroke={ink} strokeWidth={sw * 0.8} fill="none" strokeLinecap="round" />;
     } else if (expression === 'happy' || expression === 'love') {
       mouth = (
         <Path
           d={`M${x - 8 * k} ${m} Q${x - 4 * k} ${m + 7 * k} ${x} ${m + 1 * k} Q${x + 4 * k} ${m + 7 * k} ${x + 8 * k} ${m}`}
-          stroke={INK}
+          stroke={ink}
           strokeWidth={sw * 0.8}
           fill="none"
           strokeLinecap="round"
@@ -563,7 +582,7 @@ function Face({ anchor, expression, iris }: { anchor: Anchor['face']; expression
       mouth = (
         <Path
           d={`M${x - 6 * k} ${m + 1 * k} Q${x - 3 * k} ${m + 4 * k} ${x} ${m + 1 * k} Q${x + 3 * k} ${m + 4 * k} ${x + 6 * k} ${m + 1 * k}`}
-          stroke={INK}
+          stroke={ink}
           strokeWidth={sw * 0.7}
           fill="none"
           strokeLinecap="round"
