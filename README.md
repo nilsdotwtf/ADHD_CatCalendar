@@ -11,8 +11,8 @@ Erledigte Aufgaben bringen Belohnungen, mit denen du dein Tier verwöhnst. Kein 
 - Name für das Tier und „Wie möchtest du in der App genannt werden?“
 
 **Startbildschirm**
-- Flauschige Anime-Tiere (SVG-Illustrationen in `assets/animals/`); die gewählten Farben werden inklusive aller Schattierungen umgefärbt, Gesichtsausdrücke, Schmutz, zerzaustes Fell und Kleidung kommen als Ebenen darüber
-- Das Tier atmet, reagiert auf Antippen und zeigt seinen Zustand: Hunger 🍗❓, müde 💤, schlechte Laune 🌧️, dreckiges Fell (Flecken, Fliege und zerzaustes, struppiges Fell – beim Bürsten wird es wieder glatt)
+- Flauschige Anime-Tiere (SVG-Illustrationen in `assets/animals/`); die gewählten Farben werden inklusive aller Schattierungen umgefärbt, Gesichtsausdrücke, Matschspritzer und Kleidung (im selben Zeichenstil) kommen als Ebenen darüber
+- Das Tier atmet, reagiert auf Antippen und zeigt seinen Zustand: Hunger 🍗❓, müde 💤, schlechte Laune 🌧️, dreckiges Fell (Matschspritzer und Fliege – beim Bürsten wischst du sie weg)
 - Vier Bedürfnisse: Hunger, Fellpflege, Energie, Laune
 - Keine Aufgaben → das Tier ist zufrieden. Überfällige Aufgaben → die Bedürfnisse sinken nach und nach.
 - Mehr als 1 Tag ohne Aufgabe → das Tier langweilt sich (mit Benachrichtigung)
@@ -70,6 +70,7 @@ Browser-Vorschau (ohne Benachrichtigungen): `npx expo start --web`
 - **Anime-Neuzeichnung** – alle 10 Tiere komplett neu mit Kurvenpfaden nach Referenzbild gezeichnet (Halbprofil, Cel-Shading)
 - **Neue Tier-Grafiken** – die gelieferten Anime-SVGs ersetzen die selbst gezeichneten Tiere; Waschbär als 11. Tier
 - **Finale Tier-Illustrationen** – flauschige, vektorisierte Anime-Tiere; Farbwahl färbt Fell samt Schattierungen um (Zuordnung in `src/data/animalColors.ts`)
+- **Kleidung & Matsch im Tier-Stil** – Hüte und Halsschmuck neu gezeichnet (braune Kontur, Schatten, Glanz), Dreck als Matschspritzer, zerzaustes Fell entfernt
 
 ## Entwicklung
 

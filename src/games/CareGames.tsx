@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Animated, Easing, LayoutChangeEvent, PanResponder, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import Svg from 'react-native-svg';
+import { MudSplat } from '../components/Mud';
 import { Pet } from '../components/Pet';
 import { ToyArt } from '../components/ToyArt';
 import { haptic } from '../components/ui';
@@ -144,8 +146,9 @@ function FeedGame() {
 }
 
 // ---------------- Bürsten: Schmutz wegwischen ----------------
+// Lage der Matschspritzer im Bild (Anteile von Breite/Höhe) – Augen bleiben frei
 const DIRT_SPOTS = [
-  [0.36, 0.34], [0.64, 0.38], [0.42, 0.62], [0.62, 0.7], [0.5, 0.86], [0.3, 0.55], [0.7, 0.56],
+  [0.3, 0.26], [0.7, 0.28], [0.42, 0.62], [0.63, 0.7], [0.5, 0.86], [0.27, 0.52], [0.74, 0.55],
 ];
 
 function BrushGame() {
@@ -205,24 +208,25 @@ function BrushGame() {
         <View pointerEvents="none" style={StyleSheet.absoluteFill}>
           {area.w > 0 && (
             <View style={[styles.abs, { left: box.left, top: box.top }]}>
-              <Pet size={size} dirtOverride={0} messOverride={done ? 0 : 0.35 + (1 - cleaned / hp.length) * 0.65} expression={done ? 'love' : finger ? 'happy' : 'neutral'} showEffects={false} interactive={false} />
+              <Pet size={size} dirtOverride={0} expression={done ? 'love' : finger ? 'happy' : 'neutral'} showEffects={false} interactive={false} />
             </View>
+          )}
+          {area.w > 0 && (
+            <Svg width={area.w} height={area.h} style={StyleSheet.absoluteFill}>
+              {spots.map((s, i) =>
+                hp[i] > 0 ? (
+                  <MudSplat key={i} x={s.x} y={s.y} r={6 + (hp[i] / 100) * 6} seed={i + 1} opacity={0.35 + (hp[i] / 100) * 0.65} />
+                ) : null,
+              )}
+            </Svg>
           )}
           {area.w > 0 &&
             spots.map((s, i) =>
-              hp[i] > 0 ? (
-                <View
-                  key={i}
-                  style={[
-                    styles.dirt,
-                    { left: s.x - 20, top: s.y - 20, opacity: 0.25 + (hp[i] / 100) * 0.7, transform: [{ scale: 0.6 + (hp[i] / 100) * 0.4 }] },
-                  ]}
-                />
-              ) : (
+              hp[i] <= 0 ? (
                 <Text key={i} style={[styles.abs, { left: s.x - 14, top: s.y - 16, fontSize: 24 }]}>
                   ✨
                 </Text>
-              ),
+              ) : null,
             )}
           {finger && <Text style={[styles.abs, { left: finger.x - 24, top: finger.y - 40, fontSize: 44 }]}>🪮</Text>}
         </View>
@@ -480,6 +484,5 @@ const styles = StyleSheet.create({
   abs: { position: 'absolute' },
   petBottom: { position: 'absolute', bottom: 10, left: 0, right: 0, alignItems: 'center' },
   counter: { position: 'absolute', bottom: 8, right: 18, fontSize: 22, fontWeight: '900', color: '#2B2330' },
-  dirt: { position: 'absolute', width: 40, height: 40, borderRadius: 20, backgroundColor: '#7A5A3A' },
   zzz: { position: 'absolute', top: 0, right: '22%', fontSize: 26 },
 });
