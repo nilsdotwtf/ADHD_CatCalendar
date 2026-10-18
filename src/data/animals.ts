@@ -11,7 +11,8 @@ export type SpeciesId =
   | 'cow'
   | 'penguin'
   | 'budgie'
-  | 'tiger';
+  | 'tiger'
+  | 'raccoon';
 
 export interface ColorOption {
   name: string;
@@ -83,7 +84,7 @@ export const SPECIES: Species[] = [
         ],
       },
       {
-        label: 'Flecken',
+        label: 'Brust & Schnauze',
         options: [
           { name: 'Weiß', hex: '#F8F5EF' },
           { name: 'Schwarz', hex: '#2A2826' },
@@ -123,7 +124,7 @@ export const SPECIES: Species[] = [
         ],
       },
       {
-        label: 'Flecken',
+        label: 'Bauch & Schnauze',
         options: [
           { name: 'Weiß', hex: '#FBF8F3' },
           { name: 'Schwarz', hex: '#2E2C2C' },
@@ -437,6 +438,47 @@ export const SPECIES: Species[] = [
   },
 ];
 
+SPECIES.push({
+  id: 'raccoon',
+  name: 'Waschbär',
+  article: 'der',
+  emoji: '🦝',
+  description: 'Kleiner Bandit mit Maske',
+  slots: [
+    {
+      label: 'Fell',
+      options: [
+        { name: 'Grau', hex: '#A0A3A9' },
+        { name: 'Silbergrau', hex: '#B8BBC0' },
+        { name: 'Braungrau', hex: '#9A8F86' },
+        { name: 'Dunkelgrau', hex: '#77797F' },
+        { name: 'Hellgrau', hex: '#C9CBCE' },
+        { name: 'Zimt', hex: '#B08A6A' },
+        { name: 'Blond', hex: '#D2BC97' },
+        { name: 'Schwarzgrau', hex: '#5E6066' },
+        { name: 'Albino-Weiß', hex: '#EEEAE4' },
+        { name: 'Rötlichgrau', hex: '#A88E82' },
+      ],
+    },
+    {
+      label: 'Maske & Ringe',
+      options: [
+        { name: 'Schwarz', hex: '#2E2C30' },
+        { name: 'Dunkelgrau', hex: '#4D505A' },
+        { name: 'Anthrazit', hex: '#3C3E44' },
+        { name: 'Dunkelbraun', hex: '#4E3B30' },
+        { name: 'Schwarzbraun', hex: '#3A2E28' },
+        { name: 'Grau', hex: '#6E7178' },
+        { name: 'Braun', hex: '#6B5242' },
+        { name: 'Zimtbraun', hex: '#8A6448' },
+        { name: 'Hellbraun', hex: '#A88B6E' },
+        { name: 'Hellgrau (Albino)', hex: '#B9B6B2' },
+      ],
+    },
+  ],
+  defaultNames: ['Rocky', 'Bandit', 'Ringo', 'Mo', 'Wuschel', 'Flecki'],
+});
+
 export function getSpecies(id: SpeciesId): Species {
   return SPECIES.find((s) => s.id === id) ?? SPECIES[0];
 }
@@ -445,7 +487,7 @@ export function getSpecies(id: SpeciesId): Species {
 export const DEFAULT_COLOR_INDEX: Record<SpeciesId, number[]> = {
   cat: [0, 2, 1],
   dog: [3, 0],
-  rabbit: [0, 1],
+  rabbit: [0, 4],
   hamster: [0, 0],
   fox: [0, 0],
   giraffe: [2, 1],
@@ -453,4 +495,5 @@ export const DEFAULT_COLOR_INDEX: Record<SpeciesId, number[]> = {
   penguin: [0, 0],
   budgie: [0, 0, 0],
   tiger: [0, 0],
+  raccoon: [0, 1],
 };

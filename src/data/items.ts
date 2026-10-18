@@ -44,6 +44,7 @@ const FOOD_EMOJI: Record<SpeciesId, string> = {
   penguin: '🐟',
   budgie: '🌾',
   tiger: '🍖',
+  raccoon: '🍎',
 };
 
 export function consumableInfo(id: ConsumableId, species: SpeciesId): ConsumableInfo {

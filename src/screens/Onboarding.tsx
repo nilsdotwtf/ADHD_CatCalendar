@@ -19,6 +19,7 @@ const PLURAL_DAT: Record<SpeciesId, string> = {
   penguin: 'Pinguinen',
   budgie: 'Wellensittichen',
   tiger: 'Tigern',
+  raccoon: 'Waschbären',
 };
 
 type Step = 'welcome' | 'species' | 'colors' | 'petName' | 'nickname' | 'notify';
