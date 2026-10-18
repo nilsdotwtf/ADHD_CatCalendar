@@ -83,7 +83,9 @@ ob Windows lange Pfade erlaubt, und bietet an, das einmalig einzuschalten (Admin
 Administrator-PowerShell mit
 `reg add HKLM\SYSTEM\CurrentControlSet\Control\FileSystem /v LongPathsEnabled /t REG_DWORD /d 1 /f`.
 Außerdem nutzt die App CMake 3.30.5 aus dem Android-SDK (über `plugins/withCmakeVersion.js`, wird automatisch geladen),
-weil das mitgelieferte CMake 3.22.1 mit langen Pfaden nicht umgehen kann.
+weil das mitgelieferte CMake 3.22.1 mit langen Pfaden nicht umgehen kann. Gradle lädt nur die Standardversion
+selbst – `npm run build` installiert CMake 3.30.5 deshalb automatisch ins SDK (per `sdkmanager` oder direkt aus
+Googles SDK-Verzeichnis). Alternativ in Android Studio: *SDK Manager → SDK Tools → Show Package Details → CMake 3.30.5*.
 
 **Oder über die Android-Studio-Oberfläche:**
 

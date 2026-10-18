@@ -214,7 +214,8 @@ async function findSdk() {
   const localProps = path.join(ANDROID, 'local.properties');
   if (fs.existsSync(localProps)) {
     const m = /^sdk\.dir=(.+)$/m.exec(fs.readFileSync(localProps, 'utf8'));
-    if (m && fs.existsSync(m[1].replace(/\\:/g, ':').trim())) return;
+    const dir = m && m[1].replace(/\\:/g, ':').trim();
+    if (dir && fs.existsSync(dir)) return dir;
   }
   const isSdk = (d) => Boolean(d) && (fs.existsSync(path.join(d, 'platforms')) || fs.existsSync(path.join(d, 'platform-tools')));
   let sdk = [
@@ -241,6 +242,110 @@ async function findSdk() {
   if (!sdk) fail('Kein Android-SDK gefunden. Android Studio einmal öffnen (installiert das SDK) oder: npm run build -- --sdk "Pfad"');
   fs.writeFileSync(localProps, `sdk.dir=${sdk.replace(/\\/g, '/')}\n`);
   console.log(`Android-SDK: ${sdk}`);
+  return sdk;
+}
+
+/** Setzt bzw. ersetzt einen Eintrag in android/local.properties */
+function setLocalProp(key, value) {
+  const file = path.join(ANDROID, 'local.properties');
+  const lines = (fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '').split(/\r?\n/).filter((l) => l && !l.startsWith(`${key}=`));
+  lines.push(`${key}=${value.replace(/\\/g, '/')}`);
+  fs.writeFileSync(file, lines.join('\n') + '\n');
+}
+
+/**
+ * Stellt sicher, dass die gewünschte CMake-Version im SDK liegt. Gradle lädt von sich aus nur die
+ * Standardversion (3.22.1) – deshalb hier: erst sdkmanager versuchen, sonst direkt aus dem
+ * offiziellen SDK-Verzeichnis von Google laden (wie der SDK-Manager von Android Studio).
+ */
+const SDK_REPO = process.env.TIERCHEN_SDK_REPO || 'https://dl.google.com/android/repository';
+const cmakeExe = (dir) => path.join(dir, 'bin', win ? 'cmake.exe' : 'cmake');
+const vnum = (v) => v.split('.').map(Number).reduce((a, n) => a * 1000 + n, 0);
+
+async function ensureCmake(sdk, wanted) {
+  const target = (v) => path.join(sdk, 'cmake', v);
+  if (fs.existsSync(cmakeExe(target(wanted)))) return { version: wanted, dir: target(wanted) };
+
+  // 1. sdkmanager (falls die "Android SDK Command-line Tools" installiert sind)
+  const sdkmanager = subdirs(path.join(sdk, 'cmdline-tools'))
+    .map((d) => path.join(d, 'bin', win ? 'sdkmanager.bat' : 'sdkmanager'))
+    .find((f) => fs.existsSync(f));
+  if (sdkmanager) {
+    console.log(`Installiere CMake ${wanted} mit dem sdkmanager …`);
+    spawnSync(sdkmanager, ['--install', `cmake;${wanted}`], { input: 'y\ny\ny\n', stdio: ['pipe', 'inherit', 'inherit'], shell: win });
+    if (fs.existsSync(cmakeExe(target(wanted)))) return { version: wanted, dir: target(wanted) };
+  }
+
+  // 2. direkt aus dem SDK-Verzeichnis
+  console.log(`Lade CMake ${wanted} aus dem Android-SDK-Verzeichnis …`);
+  let xml;
+  try {
+    const r = await fetch(`${SDK_REPO}/repository2-3.xml`);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    xml = await r.text();
+  } catch (e) {
+    return cmakeHelp(wanted, `Das SDK-Verzeichnis war nicht erreichbar (${e.message}).`);
+  }
+  const host = win ? 'windows' : mac ? 'macosx' : 'linux';
+  const packages = [...xml.matchAll(/<remotePackage path="cmake;([\d.]+)">([\s\S]*?)<\/remotePackage>/g)]
+    .map(([, version, body]) => {
+      const archives = [...body.matchAll(/<archive>([\s\S]*?)<\/archive>/g)].map(([, a]) => ({
+        url: (/<url>([^<]+)<\/url>/.exec(a) || [])[1],
+        sha1: (/<checksum type="sha1">([^<]+)<\/checksum>/.exec(a) || [])[1],
+        os: (/<host-os>([^<]+)<\/host-os>/.exec(a) || [])[1],
+      }));
+      return { version, archive: archives.find((a) => a.os === host) || archives.find((a) => !a.os) };
+    })
+    .filter((p) => p.archive && p.archive.url);
+  // gewünschte Version – sonst die neueste ab 3.30 (ältere scheitern an langen Pfaden)
+  const pkg =
+    packages.find((p) => p.version === wanted) ||
+    packages.filter((p) => vnum(p.version) >= vnum('3.30.0')).sort((a, b) => vnum(b.version) - vnum(a.version))[0];
+  if (!pkg) return cmakeHelp(wanted, 'Im SDK-Verzeichnis gibt es keine passende CMake-Version.');
+  if (fs.existsSync(cmakeExe(target(pkg.version)))) return { version: pkg.version, dir: target(pkg.version) };
+
+  const url = /^https?:/.test(pkg.archive.url) ? pkg.archive.url : `${SDK_REPO}/${pkg.archive.url}`;
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'tierchen-cmake-'));
+  try {
+    const r = await fetch(url);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const buf = Buffer.from(await r.arrayBuffer());
+    if (pkg.archive.sha1 && require('crypto').createHash('sha1').update(buf).digest('hex') !== pkg.archive.sha1) {
+      throw new Error('Prüfsumme stimmt nicht');
+    }
+    const zip = path.join(tmp, 'cmake.zip');
+    fs.writeFileSync(zip, buf);
+    const out = path.join(tmp, 'x');
+    fs.mkdirSync(out);
+    // Windows 10+ bringt tar mit (kann zip), sonst unzip
+    const ex = win ? spawnSync('tar', ['-xf', zip, '-C', out]) : spawnSync('unzip', ['-q', zip, '-d', out]);
+    if (ex.status !== 0) throw new Error('Entpacken fehlgeschlagen');
+    // Ordner mit bin/cmake finden (Archiv kann einen Oberordner haben)
+    const find = (d, depth = 0) => (fs.existsSync(cmakeExe(d)) ? d : depth < 2 ? subdirs(d).map((x) => find(x, depth + 1)).find(Boolean) : null);
+    const root = find(out);
+    if (!root) throw new Error('im Archiv kein bin/cmake gefunden');
+    fs.mkdirSync(path.dirname(target(pkg.version)), { recursive: true });
+    fs.cpSync(root, target(pkg.version), { recursive: true });
+    if (!win) {
+      const bin = path.join(target(pkg.version), 'bin');
+      for (const f of fs.readdirSync(bin)) fs.chmodSync(path.join(bin, f), 0o755);
+    }
+  } catch (e) {
+    return cmakeHelp(pkg.version, `Download von CMake ${pkg.version} fehlgeschlagen (${e.message}).`);
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+  console.log(`✔ CMake ${pkg.version} installiert: ${target(pkg.version)}`);
+  return { version: pkg.version, dir: target(pkg.version) };
+}
+
+function cmakeHelp(version, reason) {
+  fail(
+    `${reason}\n` +
+      `  Bitte einmal in Android Studio installieren: Settings → Languages & Frameworks → Android SDK →\n` +
+      `  Reiter "SDK Tools" → unten "Show Package Details" anhaken → unter "CMake" die Version ${version} → OK.\n` +
+      `  Danach "npm run build" erneut starten.`,
+  );
 }
 
 /**
@@ -298,13 +403,18 @@ async function main() {
   if (process.env.JAVA_HOME && path.resolve(process.env.JAVA_HOME) !== path.resolve(javaHome)) {
     console.log(`Hinweis: JAVA_HOME (${process.env.JAVA_HOME}) wird nicht benutzt – nehme ${javaHome}`);
   }
-  await findSdk();
+  const sdk = await findSdk();
   await ensureLongPaths();
-  const cmake = cleanStaleCxx();
+  const wanted = cleanStaleCxx();
+  const cmake = wanted === 'default' ? null : await ensureCmake(sdk, wanted);
+  if (cmake) {
+    setLocalProp('cmake.dir', cmake.dir);
+    console.log(`CMake: ${cmake.version} (${cmake.dir})`);
+  }
 
   const args = ['assembleRelease'];
   if (!process.argv.includes('--all')) args.push('-PreactNativeArchitectures=arm64-v8a');
-  if (argValue('--cmake')) args.push(`-Ptierchen.cmakeVersion=${cmake}`);
+  if (cmake && (argValue('--cmake') || cmake.version !== wanted)) args.push(`-Ptierchen.cmakeVersion=${cmake.version}`);
 
   const env = { ...process.env, JAVA_HOME: javaHome, PATH: `${path.join(javaHome, 'bin')}${path.delimiter}${process.env.PATH}` };
   console.log(`Java: ${javaHome} (Version ${javaVersion(javaHome)})`);
