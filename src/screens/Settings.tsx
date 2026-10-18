@@ -16,6 +16,7 @@ export function Settings() {
   const sp = getSpecies(s.speciesId);
   const [petName, setPetName] = useState(s.petName);
   const [nickname, setNickname] = useState(s.nickname);
+  const [confirmReset, setConfirmReset] = useState(false);
 
   const toggleNotifications = async (v: boolean) => {
     if (v) {
@@ -41,7 +42,9 @@ export function Settings() {
       ui.setTab('home');
     };
     if (Platform.OS === 'web') {
-      if (globalThis.confirm?.('Wirklich alles zurücksetzen? Dein Tier und alle Aufgaben gehen verloren.')) doIt();
+      // Browser-Dialoge sind nicht überall erlaubt: zweimal tippen bestätigt
+      if (confirmReset) doIt();
+      else setConfirmReset(true);
       return;
     }
     Alert.alert('Wirklich neu anfangen?', 'Dein Tier, alle Aufgaben und Belohnungen gehen verloren.', [
@@ -108,7 +111,7 @@ export function Settings() {
       <Card style={{ marginTop: 14 }}>
         <H2>Neu anfangen</H2>
         <Sub style={{ marginBottom: 10 }}>Neues Tier wählen – alle Daten werden gelöscht.</Sub>
-        <Button title="Alles zurücksetzen" small outline color={C.red} onPress={reset} />
+        <Button title={confirmReset ? 'Wirklich? Nochmal tippen zum Löschen' : 'Alles zurücksetzen'} small outline={!confirmReset} color={C.red} onPress={reset} />
       </Card>
     </ScrollView>
   );
