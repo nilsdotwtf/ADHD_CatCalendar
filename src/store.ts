@@ -142,8 +142,8 @@ function initialState(): State {
     lastTaskActivity: now,
     wasPerfect: false,
     tasks: [],
-    // Starterpaket, damit man die Minispiele direkt ausprobieren kann
-    inventory: { food: 1, brush: 1, pillow: 0, cuddle: 1 },
+    // Kein Starterpaket: Bedürfnisse lassen sich erst nach der ersten erledigten Aufgabe decken
+    inventory: { food: 0, brush: 0, pillow: 0, cuddle: 0 },
     toys: [],
     clothes: [],
     equipped: {},

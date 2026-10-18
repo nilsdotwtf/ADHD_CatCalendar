@@ -26,7 +26,7 @@ Erledigte Aufgaben bringen Belohnungen, mit denen du dein Tier verwöhnst. Kein 
 - **Import aus der Notizen-App**: Liste in Apple Notizen / Google Notizen / Samsung Notes kopieren, in der App einfügen, fertig. Checkboxen (`☐`, `- [ ]`), Aufzählungen und Nummerierungen werden erkannt, bereits abgehakte Einträge sind abgewählt.
 
 **Belohnungen**
-- Jede erledigte Aufgabe: Konfetti, ein **motivierender Spruch**, XP und ein Pflege-Item (Futter, Bürste, Kuschelkissen, Streichel-Herz), passend zum Bedürfnis, das gerade am meisten fehlt
+- Jede erledigte Aufgabe: Konfetti, ein **motivierender Spruch**, XP und ein Pflege-Item (Futter, Bürste, Kuschelkissen, Streichel-Herz), passend zum Bedürfnis, das gerade am meisten fehlt. Es gibt kein Starterpaket – Verwöhnen geht erst nach der ersten erledigten Aufgabe
 - Items verbrauchen sich beim Benutzen, jedes Item startet ein kurzes Minispiel (5–10 Sekunden, man kann nicht verlieren):
   - 🍗 **Füttern**: Futter antippen, das Tier schnappt es
   - 🪮 **Bürsten**: Schmutz wegwischen
@@ -70,6 +70,7 @@ Browser-Vorschau (ohne Benachrichtigungen): `npx expo start --web`
 - **Anime-Neuzeichnung** – alle 10 Tiere komplett neu mit Kurvenpfaden nach Referenzbild gezeichnet (Halbprofil, Cel-Shading)
 - **Neue Tier-Grafiken** – die gelieferten Anime-SVGs ersetzen die selbst gezeichneten Tiere; Waschbär als 11. Tier
 - **Finale Tier-Illustrationen** – flauschige, vektorisierte Anime-Tiere; Farbwahl färbt Fell samt Schattierungen um (Zuordnung in `src/data/animalColors.ts`)
+- **Kein Starterpaket** – zu Beginn sind keine Pflege-Items da; die Bedürfnisse lassen sich erst nach einer erledigten Aufgabe decken (Hinweis unter „Verwöhnen“)
 - **Umfärben überarbeitet** – Umrandungen bleiben auch bei sehr hellen Farben sichtbar (dünne Linien werden beim Generieren erkannt), Waschbär-Maske/Beine/Schwanzringe färben sich ohne Pünktchen mit, Nase immer schwarz bzw. rosa bei dunklem Fell, Fuchs-Brust nur noch in hellen Tönen
 - **Kleidung & Matsch im Tier-Stil** – Hüte und Halsschmuck neu gezeichnet (braune Kontur, Schatten, Glanz), Dreck als Matschspritzer, zerzaustes Fell entfernt
 

@@ -97,6 +97,9 @@ export function Home() {
       </Card>
 
       <H2 style={styles.section}>Verwöhnen</H2>
+      {CONSUMABLES.every((id) => s.inventory[id] === 0) && (
+        <Text style={styles.hint}>Erledige eine Aufgabe – dann bekommst du Futter, Bürste & Co. für {s.petName}! 🎁</Text>
+      )}
       <View style={styles.items}>
         {CONSUMABLES.map((id) => {
           const info = consumableInfo(id, s.speciesId);
@@ -233,6 +236,7 @@ const styles = StyleSheet.create({
   need: { width: '48%', marginBottom: 10 },
   needLabel: { fontSize: 13, fontWeight: '800', color: C.sub, marginBottom: 4 },
   section: { marginTop: 20, marginBottom: 10 },
+  hint: { fontSize: 13, color: C.sub, marginTop: -4, marginBottom: 10 },
   items: { flexDirection: 'row', justifyContent: 'space-between' },
   item: { width: '23%', backgroundColor: '#fff', borderRadius: R.m, alignItems: 'center', paddingVertical: 12 },
   itemName: { fontSize: 12, fontWeight: '800', color: C.ink, marginTop: 4 },
