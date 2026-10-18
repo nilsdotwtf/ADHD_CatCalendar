@@ -68,3 +68,17 @@ export function shiftLike(target: string, anchor: string, variant: string): stri
   const room = dl < 0 ? tl / Math.max(al, 0.05) : (1 - tl) / Math.max(1 - al, 0.05);
   return fromHsl(th + dh, sat, tl + dl * Math.min(1.4, Math.max(0.35, room)));
 }
+
+/**
+ * Farbe einer Umrandungslinie nach dem Umfärben: wird das Fell dunkler, geht die Linie mit;
+ * wird es heller, bleibt die Linie so dunkel wie im Original (sonst verschwindet sie).
+ */
+export function lineTone(orig: string, recolored: string): string {
+  const lo = toHsl(orig)[2];
+  const ln = toHsl(recolored)[2];
+  if (ln <= lo) return recolored;
+  const [r1, g1, b1] = toRgb(orig);
+  const [r2, g2, b2] = toRgb(recolored).map((v) => (v * lo) / ln);
+  const t = 0.6;
+  return toHex(r1 + (r2 - r1) * t, g1 + (g2 - g1) * t, b1 + (b2 - b1) * t);
+}

@@ -19,6 +19,8 @@ export interface AnimalColorConfig {
   keepDarkGray?: boolean;
   /** Welche Farbe rund um die Augen liegt (Slot je Auge) – für geschlossene Augen */
   eyeSkin: [number, number];
+  /** Welcher Slot rund um die Nase liegt (fehlt = helle Schnauze) – dunkel → rosa Nase */
+  noseAround?: number;
 }
 
 export const ANIMAL_COLORS: Record<SpeciesId, AnimalColorConfig> = {
@@ -29,6 +31,7 @@ export const ANIMAL_COLORS: Record<SpeciesId, AnimalColorConfig> = {
       [2, '#924f29'],
       [-1, '#cbb096'],
     ],
+    noseAround: 0,
     eyeSkin: [0, 0],
   },
   dog: {
@@ -37,10 +40,12 @@ export const ANIMAL_COLORS: Record<SpeciesId, AnimalColorConfig> = {
       [0, '#cf7828'],
       [1, '#fdedd1'],
     ],
+    noseAround: 1,
     eyeSkin: [0, 0],
   },
   rabbit: {
     anchors: [[0, '#faedd6']],
+    noseAround: 0,
     eyeSkin: [0, 0],
   },
   hamster: {
@@ -49,6 +54,7 @@ export const ANIMAL_COLORS: Record<SpeciesId, AnimalColorConfig> = {
       [1, '#fbf1da'],
       [-1, '#fbb59e'],
     ],
+    noseAround: 1,
     eyeSkin: [0, 0],
   },
   fox: {
@@ -59,6 +65,7 @@ export const ANIMAL_COLORS: Record<SpeciesId, AnimalColorConfig> = {
     ],
     keepDarkGray: false,
     keepDarkBelow: 0.22,
+    noseAround: 1,
     eyeSkin: [0, 0],
   },
   giraffe: {
@@ -112,14 +119,19 @@ export const ANIMAL_COLORS: Record<SpeciesId, AnimalColorConfig> = {
     eyeSkin: [0, 0],
   },
   raccoon: {
+    // Maske, Beine, Schwanzringe & Pfotenballen sind in der Vorlage "kontur"-Töne
     anchors: [
       [0, '#a78771'],
+      [0, '#866554'],
       [1, '#674c3f'],
+      [1, '#463129'],
+      [1, '#311e17'],
       [-1, '#f5e0c7'],
       [-1, '#e9cdb4'],
     ],
+    groups: ['fell', 'kontur'],
     keepDarkGray: false,
-    keepDarkBelow: 0.22,
+    keepDarkBelow: 0.12,
     eyeSkin: [1, 1],
   },
 };

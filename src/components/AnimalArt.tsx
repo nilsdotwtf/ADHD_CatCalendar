@@ -6,7 +6,7 @@ import { ANIMAL_COLORS } from '../data/animalColors';
 import { ANIMAL_SVGS } from '../data/animalSvgs';
 import { HeadWear, NeckWear, WornClothing } from './Clothing';
 import { MudSplat } from './Mud';
-import { rgbDistance, shiftLike, toHsl } from './color';
+import { isDark, lineTone, rgbDistance, shiftLike, toHsl } from './color';
 
 /*
  * Die Tiere kommen aus den Anime-SVGs in assets/animals/ (aufbereitet mit
@@ -60,6 +60,11 @@ function recolor(species: SpeciesId, chosen: string[]): Record<string, string> {
     const target = chosen[best[0]] ?? chosen[0];
     out[name] = shiftLike(target, best[1], orig);
   }
+  // Umrandungslinien (--l-…) dürfen beim Aufhellen nicht verschwinden
+  for (const [name, orig] of Object.entries(src)) out[`l-${name}`] = lineTone(orig, out[name]);
+  // Nase: schwarz – außer das Fell drumherum ist dunkel, dann rosa
+  const around = cfg.noseAround != null ? (chosen[cfg.noseAround] ?? chosen[0]) : '#f5e6d0';
+  out.nose = isDark(around) ? '#EE93A6' : '#2B2330';
   return out;
 }
 

@@ -70,6 +70,7 @@ Browser-Vorschau (ohne Benachrichtigungen): `npx expo start --web`
 - **Anime-Neuzeichnung** – alle 10 Tiere komplett neu mit Kurvenpfaden nach Referenzbild gezeichnet (Halbprofil, Cel-Shading)
 - **Neue Tier-Grafiken** – die gelieferten Anime-SVGs ersetzen die selbst gezeichneten Tiere; Waschbär als 11. Tier
 - **Finale Tier-Illustrationen** – flauschige, vektorisierte Anime-Tiere; Farbwahl färbt Fell samt Schattierungen um (Zuordnung in `src/data/animalColors.ts`)
+- **Umfärben überarbeitet** – Umrandungen bleiben auch bei sehr hellen Farben sichtbar (dünne Linien werden beim Generieren erkannt), Waschbär-Maske/Beine/Schwanzringe färben sich ohne Pünktchen mit, Nase immer schwarz bzw. rosa bei dunklem Fell, Fuchs-Brust nur noch in hellen Tönen
 - **Kleidung & Matsch im Tier-Stil** – Hüte und Halsschmuck neu gezeichnet (braune Kontur, Schatten, Glanz), Dreck als Matschspritzer, zerzaustes Fell entfernt
 
 ## Entwicklung
