@@ -128,6 +128,17 @@ export async function syncNotifications(): Promise<void> {
   const taskPlans: Planned[] = [];
   for (const t of sorted) {
     if (t.reminderMinutes == null) continue;
+    if (t.reminderMinutes === 0) {
+      // Einmal genau zur gewählten Uhrzeit
+      if (t.dueAt > now + MIN && t.dueAt < NO_DUE) {
+        taskPlans.push({
+          date: new Date(t.dueAt),
+          title: `${t.emoji} ${t.title}`,
+          body: `${sp.emoji} Jetzt ist es so weit, ${me}! ${pet} freut sich schon auf die Belohnung 🎁`,
+        });
+      }
+      continue;
+    }
     const interval = t.reminderMinutes * MIN;
     // Ohne Datum: ab Erstellung erinnern; "Heute irgendwann": ab jetzt bis Tagesende
     const start = t.dueAt >= NO_DUE ? t.createdAt : t.dueMode === 'today' ? Math.min(t.createdAt, t.dueAt) : t.dueAt;

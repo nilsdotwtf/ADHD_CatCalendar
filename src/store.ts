@@ -47,6 +47,7 @@ export interface CompletionResult {
   bonusUnlocked: boolean;
   levelUp: number | null;
   streak: number;
+  doneToday: number; // wie viele Aufgaben heute schon geschafft sind
 }
 
 export interface LevelUpReward {
@@ -81,6 +82,7 @@ interface State {
   streak: number;
   lastActiveDay: string | null;
   drinksToday: { day: string; count: number };
+  doneToday: { day: string; items: { title: string; emoji: string }[] };
   drinkTimes: DrinkTime[];
   goalsClaimed: string[];
   notificationsEnabled: boolean;
@@ -152,6 +154,7 @@ function initialState(): State {
     streak: 0,
     lastActiveDay: null,
     drinksToday: { day: dayKey(now), count: 0 },
+    doneToday: { day: dayKey(now), items: [] },
     drinkTimes: [
       { label: 'Morgens', hour: 8, minute: 30 },
       { label: 'Mittags', hour: 12, minute: 30 },
@@ -236,6 +239,7 @@ export const useStore = create<State & Actions>()(
             needs,
             lastTick: now,
             drinksToday: s.drinksToday.day === today ? s.drinksToday : { day: today, count: 0 },
+            doneToday: s.doneToday.day === today ? s.doneToday : { day: today, items: [] },
             ...(s.lastActiveDay && daysBetween(s.lastActiveDay, today) > 1 ? { streak: 0 } : {}),
           });
         },
@@ -306,10 +310,13 @@ export const useStore = create<State & Actions>()(
           const streakPatch = withStreak(s, now);
           const streak = streakPatch.streak ?? s.streak;
           const xpGain = 20 + Math.min(streak, 5) * 2;
+          const today = dayKey(now);
+          const doneItems = [...(s.doneToday.day === today ? s.doneToday.items : []), { title: task.title, emoji: task.emoji }];
           const base: State = {
             ...s,
             ...streakPatch,
             tasks,
+            doneToday: { day: today, items: doneItems },
             inventory: { ...s.inventory, [item]: s.inventory[item] + 1 },
             bonusProgress,
             puzzlesAvailable,
@@ -319,7 +326,7 @@ export const useStore = create<State & Actions>()(
           const xpPatch = withXp(base, xpGain);
           set({ ...base, ...xpPatch });
           const levelUp = levelFromXp(base.xp + xpGain).level > levelFromXp(s.xp).level ? levelFromXp(base.xp + xpGain).level : null;
-          return { item, xp: xpGain, bonusProgress: bonusUnlocked ? 3 : bonusProgress, bonusUnlocked, levelUp, streak };
+          return { item, xp: xpGain, bonusProgress: bonusUnlocked ? 3 : bonusProgress, bonusUnlocked, levelUp, streak, doneToday: doneItems.length };
         },
 
         consumeItem: (id) => {
@@ -457,12 +464,16 @@ export type Overlay =
   | { kind: 'reward'; result: CompletionResult; taskTitle: string };
 
 export type Tab = 'home' | 'tasks' | 'goals' | 'wardrobe' | 'settings';
+/** Welcher Tag in der Aufgabenliste gezeigt wird: 0 = heute, 1 = morgen … oder alle */
+export type TaskView = number | 'all';
 
 interface UIState {
   tab: Tab;
   overlays: Overlay[];
   toast: { text: string; key: number } | null;
+  taskView: TaskView;
   setTab(t: Tab): void;
+  setTaskView(v: TaskView): void;
   open(o: Overlay): void;
   replace(o: Overlay): void;
   close(): void;
@@ -473,7 +484,9 @@ export const useUI = create<UIState>()((set, get) => ({
   tab: 'home',
   overlays: [],
   toast: null,
+  taskView: 0,
   setTab: (tab) => set({ tab }),
+  setTaskView: (taskView) => set({ taskView }),
   open: (o) => set({ overlays: [...get().overlays, o] }),
   replace: (o) => set({ overlays: [...get().overlays.slice(0, -1), o] }),
   close: () => set({ overlays: get().overlays.slice(0, -1) }),

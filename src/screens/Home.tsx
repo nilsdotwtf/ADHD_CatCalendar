@@ -9,6 +9,8 @@ import { getSpecies } from '../data/animals';
 import { levelFromXp } from '../data/goals';
 import { CONSUMABLES, consumableInfo, NEEDS, TOYS } from '../data/items';
 import { statusText } from '../logic/status';
+import { tasksForView } from '../logic/taskDays';
+import { dayKey } from '../logic/time';
 import { toyReady, useStore, useUI } from '../store';
 import { C, R } from '../theme';
 
@@ -24,8 +26,10 @@ export function Home() {
 
   const sp = getSpecies(s.speciesId);
   const lvl = levelFromXp(s.xp);
-  const upcoming = [...s.tasks].sort((a, b) => a.dueAt - b.dueAt).slice(0, 3);
-  const status = statusText({ ...s, now });
+  const todayTasks = tasksForView(s.tasks, 0, now);
+  const upcoming = todayTasks.slice(0, 3);
+  const doneCount = s.doneToday.day === dayKey(now) ? s.doneToday.items.length : 0;
+  const status = statusText({ ...s, tasks: todayTasks, now, doneToday: doneCount });
 
   const onItem = (id: (typeof CONSUMABLES)[number]) => {
     const info = consumableInfo(id, s.speciesId);
@@ -174,14 +178,36 @@ export function Home() {
       </Card>
 
       <View style={styles.tasksHead}>
-        <H2>Als Nächstes</H2>
-        <Pressable onPress={() => ui.setTab('tasks')}>
+        <H2>Heute{doneCount ? ` · ${doneCount} geschafft ✅` : ''}</H2>
+        <Pressable
+          onPress={() => {
+            ui.setTaskView(0);
+            ui.setTab('tasks');
+          }}
+        >
           <Text style={styles.link}>Alle ›</Text>
         </Pressable>
       </View>
       {upcoming.length === 0 ? (
         <Card>
-          <Sub>Gerade keine Aufgaben – {s.petName} ist zufrieden. Lust auf eine kleine Sache?</Sub>
+          <Sub>
+            {doneCount
+              ? `Alles für heute geschafft! ${s.petName} ist mega stolz auf dich. 🎉`
+              : `Gerade keine Aufgaben – ${s.petName} ist zufrieden. Lust auf eine kleine Sache?`}
+          </Sub>
+          {s.tasks.length > 0 && (
+            <Button
+              title="Für morgen vorarbeiten"
+              icon="⏭️"
+              small
+              color={C.purple}
+              style={{ marginTop: 10 }}
+              onPress={() => {
+                ui.setTaskView(1);
+                ui.setTab('tasks');
+              }}
+            />
+          )}
         </Card>
       ) : (
         upcoming.map((t) => <TaskRow key={t.id} task={t} now={now} />)

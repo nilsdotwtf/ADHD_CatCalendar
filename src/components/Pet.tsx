@@ -32,10 +32,11 @@ interface Props {
   showEffects?: boolean;
   interactive?: boolean;
   dirtOverride?: number;
+  messOverride?: number;
 }
 
 /** Das Tier des Nutzers – atmet, reagiert auf Antippen und zeigt seinen Zustand. */
-export function Pet({ size = 220, expression, showEffects = true, interactive = true, dirtOverride }: Props) {
+export function Pet({ size = 220, expression, showEffects = true, interactive = true, dirtOverride, messOverride }: Props) {
   const species = useStore((s) => s.speciesId);
   const colors = useStore((s) => s.colors);
   const needs = useStore((s) => s.needs);
@@ -71,6 +72,8 @@ export function Pet({ size = 220, expression, showEffects = true, interactive = 
 
   const expr: Expression = expression ?? (tapped ? 'love' : expressionFor(needs));
   const dirt = dirtOverride ?? Math.max(0, (45 - needs.clean) / 45);
+  // Unter 55% Fellpflege wird das Fell sichtbar struppig
+  const mess = messOverride ?? Math.max(0, (55 - needs.clean) / 55);
   const scaleY = breathe.interpolate({ inputRange: [0, 1], outputRange: [1, 1.025] });
   const translateY = jump.interpolate({ inputRange: [0, 1], outputRange: [0, -22] });
 
@@ -80,12 +83,12 @@ export function Pet({ size = 220, expression, showEffects = true, interactive = 
       {interactive ? (
         <Pressable onPress={onTap}>
           <Animated.View style={{ transform: [{ translateY }, { scaleY }] }}>
-            <AnimalArt species={species} colors={colors} expression={expr} dirt={dirt} head={worn.head} neck={worn.neck} size={size} />
+            <AnimalArt species={species} colors={colors} expression={expr} dirt={dirt} mess={mess} head={worn.head} neck={worn.neck} size={size} />
           </Animated.View>
         </Pressable>
       ) : (
         <Animated.View pointerEvents="none" style={{ transform: [{ translateY }, { scaleY }] }}>
-          <AnimalArt species={species} colors={colors} expression={expr} dirt={dirt} head={worn.head} neck={worn.neck} size={size} />
+          <AnimalArt species={species} colors={colors} expression={expr} dirt={dirt} mess={mess} head={worn.head} neck={worn.neck} size={size} />
         </Animated.View>
       )}
       {showEffects && (

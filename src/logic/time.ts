@@ -32,6 +32,7 @@ export function formatInterval(minutes: number): string {
 
 export function reminderLabel(minutes: number | null): string {
   if (minutes == null) return 'Keine Erinnerung';
+  if (minutes === 0) return 'Einmal zur Uhrzeit';
   if (minutes === 30) return 'Jede halbe Stunde';
   if (minutes === 60) return 'Jede Stunde';
   return `Alle ${formatInterval(minutes)}`;
@@ -111,6 +112,7 @@ export const DUE_OPTIONS: DueOption[] = [
 ];
 
 const WEEKDAYS = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
+export const WEEKDAYS_LONG = ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'];
 
 export function formatDue(t: number, now: number, mode: DueMode = 'time'): string {
   if (t >= NO_DUE) return 'ohne Datum';

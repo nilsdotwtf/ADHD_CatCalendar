@@ -3,6 +3,7 @@ import Svg, { Circle, ClipPath, Defs, Ellipse, G, Line, Path, Rect } from 'react
 import { SpeciesId } from '../data/animals';
 import { ClothingType } from '../data/items';
 import { isDark, shade } from './color';
+import { FurBack, FurFront, IRIS } from './Fur';
 
 export type Expression = 'happy' | 'neutral' | 'sad' | 'tired' | 'eating' | 'love';
 
@@ -16,6 +17,7 @@ interface Props {
   colors: string[];
   expression?: Expression;
   dirt?: number; // 0..1
+  mess?: number; // 0..1 – zerzaustes Fell
   head?: WornClothing;
   neck?: WornClothing;
   size?: number;
@@ -29,6 +31,7 @@ interface Anchor {
 
 const INK = '#2B2330';
 const PINK = '#F4A7B9';
+const OUTLINE = '#3B2F38';
 
 const ANCHORS: Record<SpeciesId, Anchor> = {
   cat: { face: { x: 100, y: 88, dx: 18, mouthY: 106, k: 1 }, top: { x: 100, y: 44, w: 78 }, neck: { x: 100, y: 132, w: 60 } },
@@ -43,7 +46,7 @@ const ANCHORS: Record<SpeciesId, Anchor> = {
   tiger: { face: { x: 100, y: 88, dx: 18, mouthY: 112, k: 1 }, top: { x: 100, y: 44, w: 78 }, neck: { x: 100, y: 132, w: 60 } },
 };
 
-export function AnimalArt({ species, colors, expression = 'neutral', dirt = 0, head, neck, size = 200 }: Props) {
+export function AnimalArt({ species, colors, expression = 'neutral', dirt = 0, mess = 0, head, neck, size = 200 }: Props) {
   const rid = useId().replace(/[^a-zA-Z0-9]/g, '');
   const c0 = colors[0] ?? '#ccc';
   const c1 = colors[1] ?? c0;
@@ -80,7 +83,6 @@ export function AnimalArt({ species, colors, expression = 'neutral', dirt = 0, h
             <Ellipse cx={134} cy={178} rx={28} ry={22} fill={c1} />
             <Ellipse cx={140} cy={72} rx={20} ry={18} fill={c2} />
             <Ellipse cx={72} cy={170} rx={22} ry={17} fill={c2} />
-            <Ellipse cx={104} cy={140} rx={10} ry={7} fill={c2} />
           </G>
           <Path d="M65 60 L67 36 L86 51 Z" fill={PINK} opacity={0.8} />
           <Path d="M135 60 L133 36 L114 51 Z" fill={PINK} opacity={0.8} />
@@ -183,7 +185,7 @@ export function AnimalArt({ species, colors, expression = 'neutral', dirt = 0, h
           <G clipPath={clip}>
             <Ellipse cx={121} cy={30} rx={16} ry={40} fill={c1} transform="rotate(8 121 34)" />
             <Ellipse cx={80} cy={86} rx={19} ry={16} fill={c1} />
-            <Ellipse cx={100} cy={196} rx={50} ry={20} fill={c1} />
+            <Ellipse cx={128} cy={176} rx={22} ry={19} fill={c1} />
           </G>
           <Ellipse cx={79} cy={38} rx={6} ry={25} fill={PINK} opacity={0.8} transform="rotate(-8 79 34)" />
           <Ellipse cx={121} cy={38} rx={6} ry={25} fill={PINK} opacity={0.8} transform="rotate(8 121 34)" />
@@ -405,17 +407,33 @@ export function AnimalArt({ species, colors, expression = 'neutral', dirt = 0, h
     }
   }
 
+  const fur = <FurBack species={species} colors={[c0, c1, c2]} mess={mess} />;
   return (
     <Svg width={size} height={size * 1.1} viewBox="0 0 200 220">
       <Defs>
         <ClipPath id={`body${rid}`}>{clipShapes}</ClipPath>
       </Defs>
       <Ellipse cx={100} cy={212} rx={60} ry={7} fill="#000" opacity={0.08} />
+      {/* Kontur: alles einmal dick in dunkel, darüber normal – bleibt nur außen sichtbar */}
+      <G stroke={OUTLINE} strokeWidth={6} strokeLinejoin="round" strokeLinecap="round">
+        {fur}
+        {back}
+        {main}
+      </G>
+      {fur}
       {back}
       {main}
+      <FurFront species={species} colors={[c0, c1, c2]} mess={mess} />
       {dirt > 0.05 && <Dirt amount={dirt} species={species} />}
-      <Face anchor={a.face} expression={expression} />
-      {front}
+      <Face anchor={a.face} expression={expression} iris={IRIS[species]} />
+      {front && (
+        <>
+          <G stroke={OUTLINE} strokeWidth={5} strokeLinejoin="round">
+            {front}
+          </G>
+          {front}
+        </>
+      )}
       {neck && <NeckWear item={neck} at={a.neck} />}
       {head && <HeadWear item={head} at={a.top} />}
     </Svg>
@@ -452,7 +470,7 @@ function Dirt({ amount, species }: { amount: number; species: SpeciesId }) {
   );
 }
 
-function Face({ anchor, expression }: { anchor: Anchor['face']; expression: Expression }) {
+function Face({ anchor, expression, iris }: { anchor: Anchor['face']; expression: Expression; iris: string }) {
   const { x, y, dx, mouthY, k, beak } = anchor;
   const lx = x - dx;
   const rx = x + dx;
@@ -480,8 +498,12 @@ function Face({ anchor, expression }: { anchor: Anchor['face']; expression: Expr
           <G>
             {[lx, rx].map((ex) => (
               <G key={ex}>
-                <Ellipse cx={ex} cy={y} rx={6 * k} ry={7 * k} fill={INK} />
-                <Circle cx={ex - 2 * k} cy={y - 2.5 * k} r={2.2 * k} fill="#fff" />
+                {/* große, glänzende Kulleraugen */}
+                <Ellipse cx={ex} cy={y} rx={7.5 * k} ry={9 * k} fill={INK} />
+                <Ellipse cx={ex} cy={y + 2.2 * k} rx={5.6 * k} ry={6.4 * k} fill={iris} />
+                <Ellipse cx={ex} cy={y + 2.6 * k} rx={3 * k} ry={3.8 * k} fill="#141017" />
+                <Circle cx={ex - 2.8 * k} cy={y - 3.6 * k} r={2.9 * k} fill="#fff" />
+                <Circle cx={ex + 2.6 * k} cy={y + 4 * k} r={1.4 * k} fill="#fff" opacity={0.85} />
               </G>
             ))}
             {expression === 'sad' && (

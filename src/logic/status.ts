@@ -11,12 +11,16 @@ export function statusText(p: {
   needs: Needs;
   tasks: Task[];
   now: number;
+  doneToday?: number;
 }): string {
-  const { petName, nickname, needs, tasks, now } = p;
+  const { petName, nickname, needs, tasks, now, doneToday = 0 } = p;
   const overdue = tasks.filter((t) => t.dueAt <= now);
   const mood = moodOf(needs);
   const low = lowestNeed(needs);
 
+  if (doneToday > 6) {
+    return `Wow, ${doneToday} Aufgaben heute! Ich bin richtig stolz auf dich, ${nickname}. Übernimm dich nicht – eine Pause hast du dir verdient. ☕`;
+  }
   if (mood === 'happy') {
     if (tasks.length === 0) return `${petName} ist rundum zufrieden. Du rockst das, ${nickname}! 😊`;
     if (overdue.length === 0) return `${petName} ist glücklich und freut sich schon auf die nächste Belohnung.`;

@@ -205,7 +205,7 @@ function BrushGame() {
         <View pointerEvents="none" style={StyleSheet.absoluteFill}>
           {area.w > 0 && (
             <View style={[styles.abs, { left: box.left, top: box.top }]}>
-              <Pet size={size} dirtOverride={0} expression={done ? 'love' : finger ? 'happy' : 'neutral'} showEffects={false} interactive={false} />
+              <Pet size={size} dirtOverride={0} messOverride={done ? 0 : 0.35 + (1 - cleaned / hp.length) * 0.65} expression={done ? 'love' : finger ? 'happy' : 'neutral'} showEffects={false} interactive={false} />
             </View>
           )}
           {area.w > 0 &&
