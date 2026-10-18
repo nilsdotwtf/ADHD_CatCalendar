@@ -55,19 +55,31 @@ npx expo start
 
 Dann den QR-Code mit der App **Expo Go** scannen ([iOS](https://apps.apple.com/app/expo-go/id982107779) / [Android](https://play.google.com/store/apps/details?id=host.exp.exponent)).
 
-### Als eigene App auf Android installieren (APK, zum Testen)
+### Als eigene App auf Android installieren (APK mit Android Studio)
 
-Gebaut wird in der Expo-Cloud – kein Android Studio nötig. Einmalig ein kostenloses Konto auf [expo.dev](https://expo.dev) anlegen, dann:
+Das native Projekt liegt fertig in `android/` (erzeugt mit `npx expo prebuild --platform android`).
+Voraussetzungen: [Node.js](https://nodejs.org) 20+ und ein aktuelles [Android Studio](https://developer.android.com/studio)
+(bringt SDK und Java mit).
+
+1. Im Projektordner einmal `npm install` ausführen (die App-Logik wird beim Bauen aus `node_modules` gebündelt).
+2. Android Studio → **Open** → den Ordner `android/` wählen und den Gradle-Sync abwarten.
+3. **Build → Select Build Variant…** → bei `app` **release** wählen
+   (eine *debug*-APK braucht einen laufenden Entwicklungsserver und startet allein nicht).
+4. **Build → Build App Bundle(s) / APK(s) → Build APK(s)**.
+5. Die fertige Datei liegt unter `android/app/build/outputs/apk/release/app-release.apk` – aufs Handy kopieren und
+   installieren („Installation aus unbekannten Quellen“ erlauben).
+
+Ohne Android-Studio-Oberfläche geht das Gleiche im Terminal: `cd android && ./gradlew assembleRelease`.
+
+> Die Release-APK ist mit dem mitgelieferten Debug-Schlüssel signiert – gut zum Testen, nicht für den Play Store.
+> Wer `app.json` ändert (Name, Icon, Plugins …), erzeugt `android/` danach neu: `npx expo prebuild --platform android --clean`.
+
+### Alternative: APK in der Expo-Cloud bauen
 
 ```bash
-npm install
 npx eas-cli@latest login
 npx eas-cli@latest build --platform android --profile preview
 ```
-
-Nach ca. 10–20 Minuten zeigt die Konsole einen Link bzw. QR-Code zur fertigen `.apk`. Auf dem Handy öffnen,
-herunterladen und installieren („Installation aus unbekannten Quellen“ für den Browser erlauben).
-Erinnerungen laufen in dieser Version zuverlässiger als in Expo Go.
 
 Browser-Vorschau (ohne Benachrichtigungen): `npx expo start --web`
 
@@ -81,6 +93,7 @@ Browser-Vorschau (ohne Benachrichtigungen): `npx expo start --web`
 - **Anime-Neuzeichnung** – alle 10 Tiere komplett neu mit Kurvenpfaden nach Referenzbild gezeichnet (Halbprofil, Cel-Shading)
 - **Neue Tier-Grafiken** – die gelieferten Anime-SVGs ersetzen die selbst gezeichneten Tiere; Waschbär als 11. Tier
 - **Finale Tier-Illustrationen** – flauschige, vektorisierte Anime-Tiere; Farbwahl färbt Fell samt Schattierungen um (Zuordnung in `src/data/animalColors.ts`)
+- **Android-Projekt** – `android/` per `expo prebuild` erzeugt, Release-APK direkt mit Android Studio baubar; `eas.json` für Cloud-Builds
 - **Jeden Tag etwas tun** – Bedürfnisse sinken täglich von selbst, Pflege-Items verfallen um Mitternacht, Level-ups geben keine Pflege-Items mehr
 - **Bürsten & Streicheln dauern länger** – jeder Fleck braucht etwa 4× drüberwischen (vorher gut 1×), Streicheln etwa 18 Striche statt 7
 - **Bürsten nur durch Wischen** – Matschflecken verschwinden je nach gewischter Strecke, Antippen allein reicht nicht; Tierauswahl ohne Farbanzahl
