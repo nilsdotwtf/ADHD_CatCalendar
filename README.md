@@ -73,6 +73,11 @@ npm run build
 im Projektordner ab (erster Build ca. 10–20 Minuten). Standardmäßig nur für arm64 (alle aktuellen Handys);
 `npm run build -- --all` baut für alle Prozessoren.
 
+Android Studio an einem eigenen Ort installiert? Das Skript sucht auch in der Windows-Registry und auf allen
+Laufwerken; findet es nichts, fragt es einmal nach dem Ordner und merkt ihn sich (`.build-apk.json`).
+Direkt angeben geht auch: `npm run build -- --studio "D:\Programme\Android Studio"` (bzw. `--sdk "…"` fürs SDK).
+Ein zu altes `JAVA_HOME` (unter Java 17) wird automatisch übergangen.
+
 **Oder über die Android-Studio-Oberfläche:**
 
 1. `npm ci` im Projektordner (die App-Logik wird beim Bauen aus `node_modules` gebündelt).
