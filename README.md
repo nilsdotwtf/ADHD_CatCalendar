@@ -14,7 +14,7 @@ Erledigte Aufgaben bringen Belohnungen, mit denen du dein Tier verwöhnst. Kein 
 - Flauschige Anime-Tiere (SVG-Illustrationen in `assets/animals/`); die gewählten Farben werden inklusive aller Schattierungen umgefärbt, Gesichtsausdrücke, Matschspritzer und Kleidung (im selben Zeichenstil) kommen als Ebenen darüber
 - Das Tier atmet, reagiert auf Antippen und zeigt seinen Zustand: Hunger 🍗❓, müde 💤, schlechte Laune 🌧️, dreckiges Fell (Matschspritzer und Fliege – beim Bürsten wischst du sie weg)
 - Vier Bedürfnisse: Hunger, Fellpflege, Energie, Laune
-- Keine Aufgaben → das Tier ist zufrieden. Überfällige Aufgaben → die Bedürfnisse sinken nach und nach.
+- Die Bedürfnisse sinken jeden Tag von selbst (≈ 36 Punkte pro Tag, bis höchstens „traurig“) – man muss also täglich etwas tun. Überfällige Aufgaben → die Bedürfnisse sinken zusätzlich und bis ganz unten.
 - Mehr als 1 Tag ohne Aufgabe → das Tier langweilt sich (mit Benachrichtigung)
 
 **Aufgaben**
@@ -26,7 +26,7 @@ Erledigte Aufgaben bringen Belohnungen, mit denen du dein Tier verwöhnst. Kein 
 - **Import aus der Notizen-App**: Liste in Apple Notizen / Google Notizen / Samsung Notes kopieren, in der App einfügen, fertig. Checkboxen (`☐`, `- [ ]`), Aufzählungen und Nummerierungen werden erkannt, bereits abgehakte Einträge sind abgewählt.
 
 **Belohnungen**
-- Jede erledigte Aufgabe: Konfetti, ein **motivierender Spruch**, XP und ein Pflege-Item (Futter, Bürste, Kuschelkissen, Streichel-Herz), passend zum Bedürfnis, das gerade am meisten fehlt. Es gibt kein Starterpaket – Verwöhnen geht erst nach der ersten erledigten Aufgabe
+- Jede erledigte Aufgabe: Konfetti, ein **motivierender Spruch**, XP und ein Pflege-Item (Futter, Bürste, Kuschelkissen, Streichel-Herz), passend zum Bedürfnis, das gerade am meisten fehlt. Es gibt kein Starterpaket – Verwöhnen geht erst nach der ersten erledigten Aufgabe. Pflege-Items halten nur bis Mitternacht, ein Vorrat für morgen geht nicht
 - Items verbrauchen sich beim Benutzen, jedes Item startet ein kurzes Minispiel (5–10 Sekunden, man kann nicht verlieren):
   - 🍗 **Füttern**: Futter antippen, das Tier schnappt es
   - 🪮 **Bürsten**: Schmutz wegwischen (nur Wischen zählt, Antippen putzt nicht)
@@ -35,7 +35,7 @@ Erledigte Aufgaben bringen Belohnungen, mit denen du dein Tier verwöhnst. Kein 
 - Alle 3 Aufgaben gibt es ein **Bonus-Puzzle** (4 Gleiche in eine Reihe tauschen, mit Tipp-Knopf). Danach suchst du dir aus:
   - **Spielzeug** (Ball, Wollknäuel, Ente, Teddy, Frisbee, Maus) in 10 Farben, mit eigenem Fang-Minispiel
   - **Kleidung**, weiblich (Schleife, Krone, Blumenkranz, Haarreif, Perlenkette) oder männlich (Fliege, Cap, Zylinder, Krawatte, Mütze), in 10 Farben
-- Level mit Geschenken, Tages-Serie 🔥, 15 Ziele mit Belohnungen (z. B. goldene Krone nach 15 Aufgaben)
+- Level (alle 3 Level ein Bonus-Puzzle, keine Pflege-Items), Tages-Serie 🔥, 15 Ziele mit Belohnungen (z. B. goldene Krone nach 15 Aufgaben)
 - Ab der 7. erledigten Aufgabe am Tag ist das Tier stolz auf dich und fragt, ob du nicht lieber eine **Pause** machen willst – damit du dich nicht übernimmst
 
 **Benachrichtigungen** (immer mit Tier und deinem Namen)
@@ -70,6 +70,7 @@ Browser-Vorschau (ohne Benachrichtigungen): `npx expo start --web`
 - **Anime-Neuzeichnung** – alle 10 Tiere komplett neu mit Kurvenpfaden nach Referenzbild gezeichnet (Halbprofil, Cel-Shading)
 - **Neue Tier-Grafiken** – die gelieferten Anime-SVGs ersetzen die selbst gezeichneten Tiere; Waschbär als 11. Tier
 - **Finale Tier-Illustrationen** – flauschige, vektorisierte Anime-Tiere; Farbwahl färbt Fell samt Schattierungen um (Zuordnung in `src/data/animalColors.ts`)
+- **Jeden Tag etwas tun** – Bedürfnisse sinken täglich von selbst, Pflege-Items verfallen um Mitternacht, Level-ups geben keine Pflege-Items mehr
 - **Bürsten & Streicheln dauern länger** – jeder Fleck braucht etwa 4× drüberwischen (vorher gut 1×), Streicheln etwa 18 Striche statt 7
 - **Bürsten nur durch Wischen** – Matschflecken verschwinden je nach gewischter Strecke, Antippen allein reicht nicht; Tierauswahl ohne Farbanzahl
 - **Kein Starterpaket** – zu Beginn sind keine Pflege-Items da; die Bedürfnisse lassen sich erst nach einer erledigten Aufgabe decken (Hinweis unter „Verwöhnen“)

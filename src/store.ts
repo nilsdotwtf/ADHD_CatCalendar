@@ -71,6 +71,8 @@ interface State {
 
   tasks: Task[];
   inventory: Record<ConsumableId, number>;
+  /** Tag, an dem die Items verdient wurden – um Mitternacht verfallen sie */
+  inventoryDay: string;
   toys: OwnedToy[];
   clothes: OwnedClothing[];
   equipped: Partial<Record<ClothingSlot, string>>;
@@ -127,6 +129,8 @@ const emptyStats: GoalStats = {
   perfectCare: 0,
 };
 
+const NO_ITEMS: Record<ConsumableId, number> = { food: 0, brush: 0, pillow: 0, cuddle: 0 };
+
 function initialState(): State {
   const now = Date.now();
   return {
@@ -143,7 +147,8 @@ function initialState(): State {
     wasPerfect: false,
     tasks: [],
     // Kein Starterpaket: Bedürfnisse lassen sich erst nach der ersten erledigten Aufgabe decken
-    inventory: { food: 0, brush: 0, pillow: 0, cuddle: 0 },
+    inventory: { ...NO_ITEMS },
+    inventoryDay: dayKey(now),
     toys: [],
     clothes: [],
     equipped: {},
@@ -166,11 +171,9 @@ function initialState(): State {
   };
 }
 
+// Keine Pflege-Items fürs Level-up – die gibt es nur für erledigte Aufgaben
 function levelUpReward(level: number): LevelUpReward {
-  const items: Partial<Record<ConsumableId, number>> = { food: 1, cuddle: 1 };
-  if (level % 2 === 0) items.brush = 1;
-  if (level % 2 === 1) items.pillow = 1;
-  return { level, items, puzzle: level % 3 === 0 };
+  return { level, items: {}, puzzle: level % 3 === 0 };
 }
 
 function addItems(
@@ -240,6 +243,8 @@ export const useStore = create<State & Actions>()(
             lastTick: now,
             drinksToday: s.drinksToday.day === today ? s.drinksToday : { day: today, count: 0 },
             doneToday: s.doneToday.day === today ? s.doneToday : { day: today, items: [] },
+            // Items halten nur bis Mitternacht – kein Vorrat für morgen
+            ...(s.inventoryDay !== today ? { inventory: { ...NO_ITEMS }, inventoryDay: today } : {}),
             ...(s.lastActiveDay && daysBetween(s.lastActiveDay, today) > 1 ? { streak: 0 } : {}),
           });
         },
@@ -330,6 +335,7 @@ export const useStore = create<State & Actions>()(
         },
 
         consumeItem: (id) => {
+          get().tick();
           const s = get();
           if (s.inventory[id] <= 0) return;
           const info = consumableInfo(id, s.speciesId);

@@ -29,7 +29,7 @@ export function Home() {
   const todayTasks = tasksForView(s.tasks, 0, now);
   const upcoming = todayTasks.slice(0, 3);
   const doneCount = s.doneToday.day === dayKey(now) ? s.doneToday.items.length : 0;
-  const status = statusText({ ...s, tasks: todayTasks, now, doneToday: doneCount });
+  const status = statusText({ ...s, tasks: todayTasks, now, doneToday: doneCount, hasItems: CONSUMABLES.some((id) => s.inventory[id] > 0) });
 
   const onItem = (id: (typeof CONSUMABLES)[number]) => {
     const info = consumableInfo(id, s.speciesId);
@@ -99,6 +99,9 @@ export function Home() {
       <H2 style={styles.section}>Verwöhnen</H2>
       {CONSUMABLES.every((id) => s.inventory[id] === 0) && (
         <Text style={styles.hint}>Erledige eine Aufgabe – dann bekommst du Futter, Bürste & Co. für {s.petName}! 🎁</Text>
+      )}
+      {CONSUMABLES.some((id) => s.inventory[id] > 0) && (
+        <Text style={styles.hint}>Pflege-Items halten nur bis Mitternacht – morgen braucht {s.petName} neue. 🌙</Text>
       )}
       <View style={styles.items}>
         {CONSUMABLES.map((id) => {

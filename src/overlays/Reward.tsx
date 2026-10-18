@@ -115,7 +115,9 @@ export function LevelUp({ reward }: { reward: LevelUpReward }) {
       <Animated.View style={[styles.card, { transform: [{ scale }] }]}>
         <Text style={{ fontSize: 60 }}>🆙</Text>
         <Text style={styles.title}>Level {reward.level}!</Text>
-        <Text style={styles.task}>Du levelst auf! Hier ist dein Geschenk:</Text>
+        <Text style={styles.task}>
+          {reward.puzzle || Object.keys(reward.items).length > 0 ? 'Du levelst auf! Hier ist dein Geschenk:' : 'Du levelst auf – weiter so! 💪'}
+        </Text>
         <View style={styles.giftRow}>
           {(Object.keys(reward.items) as ConsumableId[]).map((k) => (
             <View key={k} style={styles.gift}>

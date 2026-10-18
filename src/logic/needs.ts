@@ -13,13 +13,17 @@ const MAIN_DECAY_PER_HOUR = 5;
 const SIDE_DECAY_PER_HOUR = 1.5;
 const BORED_DECAY_PER_HOUR = 2;
 export const BORED_AFTER_MS = 24 * HOUR;
+// Grundbedarf: das Tier braucht jeden Tag Pflege (≈ 36 Punkte je Bedürfnis pro Tag) …
+const BASE_DECAY_PER_HOUR = 1.5;
+// … wird davon allein aber nur traurig, nicht völlig fertig – das schaffen nur überfällige Aufgaben
+const BASE_DECAY_FLOOR = 25;
 
 export function clamp(v: number): number {
   return Math.max(0, Math.min(100, v));
 }
 
 /**
- * Keine Aufgaben → das Tier bleibt zufrieden.
+ * Jeden Tag → Bedürfnisse sinken langsam (bis BASE_DECAY_FLOOR), damit man täglich etwas tun muss.
  * Überfällige Aufgaben → Bedürfnisse sinken, je länger desto mehr.
  * Länger als 24h gar keine Aufgabe → dem Tier wird langweilig.
  */
@@ -32,6 +36,10 @@ export function decayNeeds(
 ): Needs {
   if (to <= from) return needs;
   const next = { ...needs };
+  const base = ((to - from) / HOUR) * BASE_DECAY_PER_HOUR;
+  for (const n of NEEDS) {
+    if (next[n.id] > BASE_DECAY_FLOOR) next[n.id] = Math.max(BASE_DECAY_FLOOR, next[n.id] - base);
+  }
   for (const t of tasks) {
     const start = Math.max(from, t.dueAt);
     if (start >= to) continue;

@@ -12,8 +12,10 @@ export function statusText(p: {
   tasks: Task[];
   now: number;
   doneToday?: number;
+  /** Hat man noch Pflege-Items von heute? */
+  hasItems?: boolean;
 }): string {
-  const { petName, nickname, needs, tasks, now, doneToday = 0 } = p;
+  const { petName, nickname, needs, tasks, now, doneToday = 0, hasItems = false } = p;
   const overdue = tasks.filter((t) => t.dueAt <= now);
   const mood = moodOf(needs);
   const low = lowestNeed(needs);
@@ -31,5 +33,6 @@ export function statusText(p: {
   if (overdue.length > 0) {
     return `${base} Erledige „${overdue[0].title}“, dann bekommst du etwas zum Verwöhnen.`;
   }
-  return `${base} Nutze ein Pflege-Item unten – oder schaff eine Aufgabe für Nachschub.`;
+  if (hasItems) return `${base} Nutze ein Pflege-Item unten – oder schaff eine Aufgabe für Nachschub.`;
+  return `${base} Schaff eine Aufgabe, dann kannst du ${petName} verwöhnen. 💪`;
 }
